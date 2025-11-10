@@ -1,0 +1,22 @@
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{0}: checkout: moving from main to main
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{1}: checkout: moving from develop to main
+[33me17d3af[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{2}: checkout: moving from develop to develop
+[33me17d3af[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{3}: checkout: moving from feature/authentication-ui-api to develop
+[33m2f02d5c[m[33m ([m[1;31morigin/feature/authentication-ui-api[m[33m, [m[1;32mfeature/authentication-ui-api[m[33m)[m HEAD@{4}: checkout: moving from develop to feature/authentication-ui-api
+[33me17d3af[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{5}: checkout: moving from feature/root-layout to develop
+[33m68b7d6c[m[33m ([m[1;31morigin/feature/root-layout[m[33m, [m[1;32mfeature/root-layout[m[33m)[m HEAD@{6}: commit: feat: add RootLayout component with metadata for Next.js application
+[33me17d3af[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{7}: checkout: moving from develop to feature/root-layout
+[33me17d3af[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{8}: commit: feat: implement event registration and management API endpoints
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{9}: checkout: moving from feature/authentication-ui-api to develop
+[33m2f02d5c[m[33m ([m[1;31morigin/feature/authentication-ui-api[m[33m, [m[1;32mfeature/authentication-ui-api[m[33m)[m HEAD@{10}: commit: feat: add UI components and authentication logic for university ERP
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{11}: checkout: moving from develop to feature/authentication-ui-api
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{12}: checkout: moving from feature/database-with-seed-data to develop
+[33m09f69f7[m[33m ([m[1;31morigin/feature/database-with-seed-data[m[33m, [m[1;32mfeature/database-with-seed-data[m[33m)[m HEAD@{13}: commit: feat: implement database schema and seed demo data for university ERP
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{14}: checkout: moving from develop to feature/database-with-seed-data
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{15}: checkout: moving from feature/student-portal-openapi to develop
+[33m6bab10e[m[33m ([m[1;31morigin/feature/student-portal-openapi[m[33m, [m[1;32mfeature/student-portal-openapi[m[33m)[m HEAD@{16}: commit: feat: add OpenAPI specification for Student Portal API
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{17}: checkout: moving from develop to feature/student-portal-openapi
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{18}: checkout: moving from develop to develop
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{19}: checkout: moving from main to develop
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{20}: Branch: renamed refs/heads/main to refs/heads/main
+[33m8e71ce9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{22}: commit (initial): chore: initialize Next.js project with Tailwind CSS and TypeScript
