@@ -22,13 +22,13 @@
 *Objective: Track student performance and suggest resources.*
 
 ### Database & Schema
-- [ ] **Schema - Academics:** Create tables:
+- [x] **Schema - Academics:** Create tables:
     - `Course` (id, code, title, lecturer_id).
     - `Enrollment` (student_id, course_id, status).
     - `Assignment` (course_id, total_marks).
     - `Grade` (enrollment_id, assignment_id, score_obtained).
     - `Attendance` (enrollment_id, date, status).
-- [ ] **Schema - Recommendations:** Create `Recommendation` table (user_id, type, resource_link, reason, relevance_score).
+- [x] **Schema - Recommendations:** Create `Recommendation` table (user_id, type, resource_link, reason, relevance_score).
 
 ### API & Logic
 - [ ] **Faculty Logic:** Create endpoints for Faculty to input grades and attendance (`POST /api/faculty/grades`).

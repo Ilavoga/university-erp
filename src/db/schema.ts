@@ -62,3 +62,55 @@ export const verificationTokens = sqliteTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
+// Phase 1: Academic Progress & Recommendations
+
+export const courses = sqliteTable('course', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  code: text('code').notNull().unique(),
+  title: text('title').notNull(),
+  lecturerId: text('lecturer_id').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const enrollments = sqliteTable('enrollment', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  status: text('status', { enum: ['ACTIVE', 'COMPLETED', 'DROPPED'] }).notNull().default('ACTIVE'),
+  enrolledAt: integer('enrolled_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const assignments = sqliteTable('assignment', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  totalMarks: integer('total_marks').notNull(),
+  dueDate: integer('due_date', { mode: 'timestamp' }),
+});
+
+export const grades = sqliteTable('grade', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  enrollmentId: text('enrollment_id').notNull().references(() => enrollments.id, { onDelete: 'cascade' }),
+  assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+  scoreObtained: integer('score_obtained').notNull(),
+  gradedAt: integer('graded_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const attendance = sqliteTable('attendance', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  enrollmentId: text('enrollment_id').notNull().references(() => enrollments.id, { onDelete: 'cascade' }),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
+  status: text('status', { enum: ['PRESENT', 'ABSENT', 'EXCUSED'] }).notNull(),
+});
+
+export const recommendations = sqliteTable('recommendation', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type', { enum: ['COURSE', 'RESOURCE', 'EVENT'] }).notNull(),
+  resourceLink: text('resource_link'),
+  reason: text('reason'),
+  relevanceScore: integer('relevance_score'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+
