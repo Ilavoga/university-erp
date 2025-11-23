@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import type { AdapterAccount } from 'next-auth/adapters';
 
 export const users = sqliteTable('user', {
@@ -112,5 +112,43 @@ export const recommendations = sqliteTable('recommendation', {
   relevanceScore: integer('relevance_score'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  enrollments: many(enrollments),
+}));
+
+export const coursesRelations = relations(courses, ({ many }) => ({
+  enrollments: many(enrollments),
+}));
+
+export const enrollmentsRelations = relations(enrollments, ({ one, many }) => ({
+  student: one(users, {
+    fields: [enrollments.studentId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [enrollments.courseId],
+    references: [courses.id],
+  }),
+  grades: many(grades),
+}));
+
+export const assignmentsRelations = relations(assignments, ({ one }) => ({
+  course: one(courses, {
+    fields: [assignments.courseId],
+    references: [courses.id],
+  }),
+}));
+
+export const gradesRelations = relations(grades, ({ one }) => ({
+  enrollment: one(enrollments, {
+    fields: [grades.enrollmentId],
+    references: [enrollments.id],
+  }),
+  assignment: one(assignments, {
+    fields: [grades.assignmentId],
+    references: [assignments.id],
+  }),
+}));
 
 

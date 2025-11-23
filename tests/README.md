@@ -24,4 +24,18 @@ Tests the authentication flow via NextAuth API endpoints.
 
 **Note:**
 - Ensure you have registered a user with email `student@test.com` and password `password123` (or update the script variables) before running this test.
-- Server Actions (like `registerUser`) are difficult to test via raw shell scripts due to Next.js internal serialization. This script focuses on the exposed API endpoints.
+### `academics-flow.ps1`
+Tests the Phase 1 Academic API endpoints.
+
+**Steps:**
+1. Logs in as Faculty (`faculty@test.com`) and attempts to submit a grade (Expects 404 for invalid IDs, proving Auth/Role check passed).
+2. Logs in as Student (`student@test.com`) and fetches progress report (`GET /api/student/progress`).
+3. Logs in as Student and fetches recommendations (`GET /api/academics/explore`).
+
+**Usage:**
+```powershell
+.\tests\academics-flow.ps1
+```
+
+**Note:**
+- Requires a registered Faculty user (`faculty@test.com`) and Student user (`student@test.com`).

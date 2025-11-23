@@ -31,9 +31,9 @@
 - [x] **Schema - Recommendations:** Create `Recommendation` table (user_id, type, resource_link, reason, relevance_score).
 
 ### API & Logic
-- [ ] **Faculty Logic:** Create endpoints for Faculty to input grades and attendance (`POST /api/faculty/grades`).
-- [ ] **Progress Logic:** Create `GET /api/student/progress` to aggregate grades and calculate GPA/Completion % in real-time.
-- [ ] **Recommendation Engine:** Implement a utility function that analyzes `Enrollment` history to seed the `Recommendation` table (Mock AI or OpenAI API integration).
+- [x] **Faculty Logic:** Create endpoints for Faculty to input grades and attendance (`POST /api/faculty/grades`).
+- [x] **Progress Logic:** Create `GET /api/student/progress` to aggregate grades and calculate GPA/Completion % in real-time.
+- [x] **Recommendation Engine:** Implement a utility function that analyzes `Enrollment` history to seed the `Recommendation` table (Mock AI or OpenAI API integration).
 
 ### UI / Client
 - [ ] **Course List:** Create component to list active courses.
