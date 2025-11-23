@@ -5,8 +5,10 @@ import Credentials from "next-auth/providers/credentials"
 import { users } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import bcrypt from "bcrypt"
+import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: DrizzleAdapter(db),
   providers: [
     Credentials({
@@ -40,23 +42,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
-        token.id = user.id
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.role = token.role as string
-        session.user.id = token.id as string
-      }
-      return session
-    },
-  },
 })
