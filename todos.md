@@ -13,8 +13,8 @@
 - [x] **User Endpoints:** Create `GET /api/user/me` to fetch current user context.
 
 ### UI / Client
-- [ ] **Layout:** Create root layout with conditional navigation bars based on User Role.
-- [ ] **Login/Register:** Create responsive authentication forms.
+- [x] **Layout:** Create root layout with conditional navigation bars based on User Role.
+- [x] **Login/Register:** Create responsive authentication forms.
 
 ---
 
