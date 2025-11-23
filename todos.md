@@ -4,13 +4,13 @@
 *Objective: Set up the base environment, database connection, and role-based authentication.*
 
 ### Database & Schema
-- [ ] **Initialize Project:** Setup Next.js 14+ (App Router), install SQLite driver (better-sqlite3) and ORM (Prisma/Drizzle).
-- [ ] **Schema - Users:** Define `User` table with fields: `id`, `email`, `password_hash`, `role` (ENUM: 'STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'), `profile_data` (JSON).
-- [ ] **Schema - Sessions:** Define session management tables (if using NextAuth database adapter).
+- [x] **Initialize Project:** Setup Next.js 14+ (App Router), install SQLite driver (better-sqlite3) and ORM (Prisma/Drizzle).
+- [x] **Schema - Users:** Define `User` table with fields: `id`, `email`, `password_hash`, `role` (ENUM: 'STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'), `profile_data` (JSON).
+- [x] **Schema - Sessions:** Define session management tables (if using NextAuth database adapter).
 
 ### API & Logic
-- [ ] **Auth Configuration:** Implement NextAuth.js/Auth.js with role-based middleware protection.
-- [ ] **User Endpoints:** Create `GET /api/user/me` to fetch current user context.
+- [x] **Auth Configuration:** Implement NextAuth.js/Auth.js with role-based middleware protection.
+- [x] **User Endpoints:** Create `GET /api/user/me` to fetch current user context.
 
 ### UI / Client
 - [ ] **Layout:** Create root layout with conditional navigation bars based on User Role.
