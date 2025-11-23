@@ -16,6 +16,11 @@ export async function Navbar() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
+              {user.role === "STUDENT" && (
+                <Link href="/academics" className="text-sm font-medium hover:underline">
+                  Academics
+                </Link>
+              )}
               <span className="text-sm text-muted-foreground">
                 {user.email} ({user.role})
               </span>

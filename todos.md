@@ -36,8 +36,8 @@
 - [x] **Recommendation Engine:** Implement a utility function that analyzes `Enrollment` history to seed the `Recommendation` table (Mock AI or OpenAI API integration).
 
 ### UI / Client
-- [ ] **Course List:** Create component to list active courses.
-- [ ] **Progress Details Page:** Create `/academics/progress/[courseId]` displaying charts (recharts/chart.js) of grades and attendance.
+- [x] **Course List:** Create component to list active courses.
+- [x] **Progress Details Page:** Create `/academics/progress/[courseId]` displaying charts (recharts/chart.js) of grades and attendance.
 - [ ] **Explore Page:** Create `/academics/explore` rendering the recommendation feed.
 
 ---

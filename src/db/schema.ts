@@ -10,7 +10,7 @@ export const users = sqliteTable('user', {
   image: text('image'),
   passwordHash: text('password_hash'), // For credentials provider
   role: text('role', { enum: ['STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'] }).notNull().default('STUDENT'),
-  profileData: text('profile_data', { mode: 'json' }).$type<Record<string, any>>(),
+  profileData: text('profile_data', { mode: 'json' }).$type<Record<string, unknown>>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });

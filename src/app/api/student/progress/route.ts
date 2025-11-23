@@ -40,6 +40,7 @@ export async function GET() {
       else if (percentage >= 50) gpa = 1.0;
 
       return {
+        courseId: enrollment.course.id,
         courseCode: enrollment.course.code,
         courseTitle: enrollment.course.title,
         percentage: parseFloat(percentage.toFixed(2)),
