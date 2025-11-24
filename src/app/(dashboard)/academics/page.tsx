@@ -1,15 +1,21 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { enrollments } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { enrollments, courses } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { CourseCard, CourseProgress } from "@/components/academics/course-card";
+import { FacultyDashboard } from "@/components/academics/faculty-dashboard";
+import { StudentCourseCatalog } from "@/components/academics/student-course-catalog";
 
 export default async function AcademicsPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Fetch data directly (Server Component)
+  if (session.user.role === "FACULTY") {
+    return <FacultyDashboard />;
+  }
+
+  // Fetch student's enrolled courses
   const studentEnrollments = await db.query.enrollments.findMany({
     where: eq(enrollments.studentId, session.user.id),
     with: {
@@ -22,7 +28,9 @@ export default async function AcademicsPage() {
     }
   });
 
-  const courses: CourseProgress[] = studentEnrollments.map(enrollment => {
+  const enrolledCourseIds = studentEnrollments.map(e => e.courseId);
+
+  const myCourses: CourseProgress[] = studentEnrollments.map(enrollment => {
     const totalPossibleMarks = enrollment.grades.reduce((acc, grade) => acc + grade.assignment.totalMarks, 0);
     const totalObtainedMarks = enrollment.grades.reduce((acc, grade) => acc + grade.scoreObtained, 0);
     
@@ -46,19 +54,42 @@ export default async function AcademicsPage() {
     };
   });
 
+  // Fetch all available courses for the catalog
+  const allCourses = await db
+    .select({
+      id: courses.id,
+      title: courses.title,
+      code: courses.code,
+      description: courses.description,
+      credits: courses.credits,
+      capacity: courses.capacity,
+      enrollmentCount: sql<number>`count(${enrollments.id})`.mapWith(Number),
+    })
+    .from(courses)
+    .leftJoin(enrollments, eq(courses.id, enrollments.courseId))
+    .groupBy(courses.id);
+
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">My Academics</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {courses.map(course => (
-          <CourseCard key={course.courseId} data={course} />
-        ))}
-      </div>
-      {courses.length === 0 && (
-        <div className="text-center text-muted-foreground mt-10">
-          You are not enrolled in any courses yet.
+    <div className="container mx-auto py-8 space-y-12">
+      <div>
+        <h1 className="text-3xl font-bold mb-6">My Academics</h1>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {myCourses.map(course => (
+            <CourseCard key={course.courseId} data={course} />
+          ))}
         </div>
-      )}
+        {myCourses.length === 0 && (
+          <div className="text-center text-muted-foreground mt-10 p-8 border rounded-lg border-dashed">
+            You are not enrolled in any courses yet.
+          </div>
+        )}
+      </div>
+
+      <StudentCourseCatalog 
+        courses={allCourses} 
+        enrolledCourseIds={enrolledCourseIds} 
+      />
     </div>
   );
 }
+
