@@ -166,7 +166,7 @@ export function StudentCourseCatalog({ courses, enrolledCourseIds }: StudentCour
             {currentCourses.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  No courses available.
+                  {searchTerm ? "No courses found matching your search." : "No new courses available for enrollment."}
                 </TableCell>
               </TableRow>
             )}
