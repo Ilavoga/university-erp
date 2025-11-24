@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { auth } from "@/auth"
-import { signOut } from "@/auth"
+import { UserNav } from "./user-nav"
+import { Button } from "@/components/ui/button"
+import { SidebarSheet } from "@/components/layout/sidebar"
 
 export async function Navbar() {
   const session = await auth()
@@ -9,40 +11,24 @@ export async function Navbar() {
   return (
     <nav className="border-b bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold">
-          UniERP
-        </Link>
+        <div className="flex items-center gap-2">
+          {user && <SidebarSheet />}
+          <Link href="/" className="text-xl font-bold">
+            UniERP
+          </Link>
+        </div>
 
         <div className="flex items-center gap-4">
           {user ? (
-            <>
-              {user.role === "STUDENT" && (
-                <Link href="/academics" className="text-sm font-medium hover:underline">
-                  Academics
-                </Link>
-              )}
-              <span className="text-sm text-muted-foreground">
-                {user.email} ({user.role})
-              </span>
-              <form
-                action={async () => {
-                  "use server"
-                  await signOut()
-                }}
-              >
-                <button className="text-sm font-medium hover:underline">
-                  Sign Out
-                </button>
-              </form>
-            </>
+            <UserNav user={user} />
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium hover:underline">
-                Login
-              </Link>
-              <Link href="/register" className="text-sm font-medium hover:underline">
-                Register
-              </Link>
+              <Button variant="ghost" asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/register">Register</Link>
+              </Button>
             </>
           )}
         </div>

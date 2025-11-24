@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
+import ClientBody from "./ClientBody";
+import Script from "next/script";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "University ERP",
-  description: "Student Portal and Management System",
+  title: "University ERP - Student Management System",
+  description: "Comprehensive university management platform",
 };
 
 export default function RootLayout({
@@ -16,12 +26,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Navbar />
-        <main className="container mx-auto py-4 px-4">
-          {children}
-        </main>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
+        <Script
+          crossOrigin="anonymous"
+          src="//unpkg.com/same-runtime/dist/index.global.js"
+        />
+      </head>
+      <body suppressHydrationWarning className="antialiased">
+        <ClientBody>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ClientBody>
       </body>
     </html>
   );
