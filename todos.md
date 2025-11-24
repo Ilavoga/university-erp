@@ -38,7 +38,7 @@
 ### UI / Client
 - [x] **Course List:** Create component to list active courses.
 - [x] **Progress Details Page:** Create `/academics/progress/[courseId]` displaying charts (recharts/chart.js) of grades and attendance.
-- [ ] **Explore Page:** Create `/academics/explore` rendering the recommendation feed.
+- [x] **Explore Page:** Create `/academics/explore` rendering the recommendation feed.
 
 ---
 
@@ -48,6 +48,16 @@
 ### Database & Schema
 - [ ] **Schema - Activity:** Create `ActivityLog` table (user_id, action_type, reference_id, timestamp).
 - [ ] **Schema - Notifications:** Create `Notification` table (user_id, message, is_read, type, link).
+
+### API & Logic
+- [ ] **Activity Logger:** Utility to log key actions (e.g., "Submitted Assignment", "Viewed Grade").
+- [ ] **Notification System:** Logic to create notifications on triggers (e.g., Grade posted -> Notify Student).
+
+### UI / Client
+- [x] **Sidebar:** Implement sidebar navigation for services (Dashboard, Academics, Housing).
+- [ ] **Activity Feed:** Component on Dashboard showing recent user activity.
+- [ ] **Notification Center:** Dropdown/Page for notifications.
+
 
 ### API & Logic
 - [ ] **Event Triggers:** Implement database hooks/middleware to insert into `ActivityLog` whenever a User creates a booking, submits an assignment, or posts a listing.
