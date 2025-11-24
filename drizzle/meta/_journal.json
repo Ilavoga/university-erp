@@ -15,6 +15,13 @@
       "when": 1763902381817,
       "tag": "0001_loud_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1763984885566,
+      "tag": "0002_famous_the_professor",
+      "breakpoints": true
     }
   ]
 }
