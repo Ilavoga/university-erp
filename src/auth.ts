@@ -18,7 +18,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
+        console.log("Authorize called with:", { email: credentials?.email })
         if (!credentials?.email || !credentials?.password) {
+          console.log("Missing credentials")
           return null
         }
 
@@ -26,7 +28,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: eq(users.email, credentials.email as string),
         })
 
-        if (!user || !user.passwordHash) {
+        if (!user) {
+          console.log("User not found in DB")
+          return null
+        }
+
+        if (!user.passwordHash) {
+          console.log("User has no password hash")
           return null
         }
 
@@ -34,6 +42,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           credentials.password as string,
           user.passwordHash
         )
+
+        console.log("Password match result:", passwordsMatch)
 
         if (passwordsMatch) {
           return user
