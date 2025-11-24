@@ -36,36 +36,60 @@ function Get-Session {
     }
 }
 
-Write-Host "1. Testing Faculty Grade Submission" -ForegroundColor Cyan
+Write-Host "1. Testing Faculty Course Creation" -ForegroundColor Cyan
 $facultySession = Get-Session -email $facultyEmail -password $facultyPassword
 
 if ($facultySession) {
-    # Note: In a real test, we'd need to seed enrollment/assignment IDs first.
-    # For this smoke test, we'll check if the endpoint is protected/reachable.
+    $courseCode = "TEST" + (Get-Random -Minimum 100 -Maximum 999)
+    $coursePayload = @{
+        code = $courseCode
+        title = "Test Course $courseCode"
+    } | ConvertTo-Json
+    
+    try {
+        $response = Invoke-WebRequest -Uri "$baseUrl/api/faculty/courses" -Method Post -Body $coursePayload -WebSession $facultySession -ContentType "application/json" -ErrorAction Stop
+        Write-Host "   Success: Created course $courseCode" -ForegroundColor Green
+    } catch {
+        Write-Host "   Failed to create course: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    Write-Host "`n2. Testing Faculty Grade Submission" -ForegroundColor Cyan
+    
+    # Use known IDs from seed data
+    $enrollmentId = "enrollment-student-01-cs101"
+    $assignmentId = "assignment-cs101-midterm"
     
     $gradePayload = @{
         type = "grade"
-        enrollmentId = "invalid-id" # Expect 404 or validation error, but 200/400/404 means endpoint works
-        assignmentId = "invalid-id"
-        scoreObtained = 85
+        enrollmentId = $enrollmentId
+        assignmentId = $assignmentId
+        scoreObtained = 92
+    } | ConvertTo-Json
+    
+    try {
+        $response = Invoke-WebRequest -Uri "$baseUrl/api/faculty/grades" -Method Post -Body $gradePayload -WebSession $facultySession -ContentType "application/json" -ErrorAction Stop
+        Write-Host "   Success: Submitted grade for $enrollmentId" -ForegroundColor Green
+    } catch {
+        Write-Host "   Failed to submit grade: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    Write-Host "`n3. Testing Faculty Attendance Submission" -ForegroundColor Cyan
+    $attendancePayload = @{
+        type = "attendance"
+        enrollmentId = $enrollmentId
+        date = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
+        status = "PRESENT"
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-WebRequest -Uri "$baseUrl/api/faculty/grades" -Method Post -Body $gradePayload -WebSession $facultySession -ContentType "application/json" -ErrorAction Stop
-        Write-Host "   Response: $($response.StatusCode)" -ForegroundColor Green
+        $response = Invoke-WebRequest -Uri "$baseUrl/api/faculty/grades" -Method Post -Body $attendancePayload -WebSession $facultySession -ContentType "application/json" -ErrorAction Stop
+        Write-Host "   Success: Submitted attendance for $enrollmentId" -ForegroundColor Green
     } catch {
-        # 404 is expected since IDs don't exist, but proves auth passed and logic ran
-        if ($_.Exception.Response.StatusCode -eq 404) {
-             Write-Host "   Success: Endpoint reached (Got 404 for invalid IDs as expected)" -ForegroundColor Green
-        } elseif ($_.Exception.Response.StatusCode -eq 401) {
-             Write-Host "   Failed: Unauthorized (Faculty role check failed)" -ForegroundColor Red
-        } else {
-             Write-Host "   Result: $($_.Exception.Response.StatusCode) - $($_.Exception.Message)" -ForegroundColor Yellow
-        }
+        Write-Host "   Failed to submit attendance: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
-Write-Host "`n2. Testing Student Progress" -ForegroundColor Cyan
+Write-Host "`n4. Testing Student Progress" -ForegroundColor Cyan
 $studentSession = Get-Session -email $studentEmail -password $studentPassword
 
 if ($studentSession) {
@@ -79,7 +103,7 @@ if ($studentSession) {
     }
 }
 
-Write-Host "`n3. Testing Recommendations (Explore)" -ForegroundColor Cyan
+Write-Host "`n5. Testing Recommendations (Explore)" -ForegroundColor Cyan
 if ($studentSession) {
     try {
         $response = Invoke-WebRequest -Uri "$baseUrl/api/academics/explore" -Method Get -WebSession $studentSession -ErrorAction Stop
