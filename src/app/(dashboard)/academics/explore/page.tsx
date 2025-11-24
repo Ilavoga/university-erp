@@ -58,8 +58,8 @@ export default async function ExplorePage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {recommendations.map((rec) => (
-          <Card key={rec.id} className="flex flex-col">
+        {recommendations?.map((rec, index) => (
+          <Card key={index} className="flex flex-col">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="p-2 bg-primary/10 rounded-full text-primary mb-4">
