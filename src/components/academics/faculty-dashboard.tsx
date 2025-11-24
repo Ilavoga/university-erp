@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil, Trash, Plus } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash, Plus, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -329,6 +329,11 @@ export function FacultyDashboard() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/academics/manage/${course.id}`)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" /> Manage
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
                           setEditingCourse(course);
