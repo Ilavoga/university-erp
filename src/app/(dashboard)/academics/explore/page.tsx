@@ -6,12 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, BookOpen, Calendar, Star } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/db";
+import { courses, enrollments } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { StudentCourseCatalog } from "@/components/academics/student-course-catalog";
 
 export default async function ExplorePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
   const recommendations = await generateRecommendations(session.user.id);
+
+  // Fetch all courses with enrollment counts
+  const allCourses = await db
+    .select({
+      id: courses.id,
+      title: courses.title,
+      code: courses.code,
+      description: courses.description,
+      credits: courses.credits,
+      capacity: courses.capacity,
+      enrollmentCount: sql<number>`count(${enrollments.id})`.mapWith(Number),
+    })
+    .from(courses)
+    .leftJoin(enrollments, eq(courses.id, enrollments.courseId))
+    .groupBy(courses.id);
+
+  // Fetch student's enrolled course IDs
+  const studentEnrollments = await db
+    .select({ courseId: enrollments.courseId })
+    .from(enrollments)
+    .where(eq(enrollments.studentId, session.user.id));
+    
+  const enrolledCourseIds = studentEnrollments.map(e => e.courseId);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -76,6 +103,10 @@ export default async function ExplorePage() {
           </p>
         </div>
       )}
+
+      <div className="mt-12">
+        <StudentCourseCatalog courses={allCourses} enrolledCourseIds={enrolledCourseIds} />
+      </div>
     </div>
   );
 }
