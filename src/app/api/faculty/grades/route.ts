@@ -4,6 +4,7 @@ import { assignments, attendance, courses, enrollments, grades } from "@/db/sche
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logGradeReceived, logAttendanceMarked } from "@/lib/activity-logger";
 
 const gradeSchema = z.object({
   enrollmentId: z.string(),
@@ -31,12 +32,23 @@ export async function POST(req: Request) {
     if (type === "grade") {
       const { enrollmentId, assignmentId, scoreObtained } = gradeSchema.parse(body);
       
-      // Verify enrollment exists
+      // Verify enrollment exists and get related data
       const enrollment = await db.query.enrollments.findFirst({
         where: eq(enrollments.id, enrollmentId),
+        with: {
+          student: true,
+          course: true,
+        },
       });
 
       if (!enrollment) return new NextResponse("Enrollment not found", { status: 404 });
+
+      // Get assignment details
+      const assignment = await db.query.assignments.findFirst({
+        where: eq(assignments.id, assignmentId),
+      });
+
+      if (!assignment) return new NextResponse("Assignment not found", { status: 404 });
 
       // Check for existing grade
       const existingGrade = await db.query.grades.findFirst({
@@ -58,12 +70,32 @@ export async function POST(req: Request) {
         });
       }
 
+      // Log activity and send notification to student
+      await logGradeReceived(
+        enrollment.studentId,
+        enrollment.courseId,
+        enrollment.course.title,
+        assignment.title,
+        scoreObtained,
+        assignment.totalMarks
+      );
+
       return NextResponse.json({ success: true });
     } 
     
     if (type === "attendance") {
       const { enrollmentId, date, status } = attendanceSchema.parse(body);
       const attendanceDate = new Date(date);
+
+      // Get enrollment with related data
+      const enrollment = await db.query.enrollments.findFirst({
+        where: eq(enrollments.id, enrollmentId),
+        with: {
+          course: true,
+        },
+      });
+
+      if (!enrollment) return new NextResponse("Enrollment not found", { status: 404 });
 
       // Check for existing attendance
       const existingAttendance = await db.query.attendance.findFirst({
@@ -84,6 +116,15 @@ export async function POST(req: Request) {
           status,
         });
       }
+
+      // Log activity and send notification (only for ABSENT/EXCUSED)
+      await logAttendanceMarked(
+        enrollment.studentId,
+        enrollment.courseId,
+        enrollment.course.title,
+        attendanceDate,
+        status
+      );
 
       return NextResponse.json({ success: true });
     }
