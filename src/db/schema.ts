@@ -202,6 +202,7 @@ export const hostelBlocks = sqliteTable('hostel_block', {
   name: text('name').notNull(),
   location: text('location'), // e.g., "North Wing", "Campus A"
   genderRestriction: text('gender_restriction', { enum: ['MALE', 'FEMALE', 'MIXED'] }).default('MIXED'),
+  images: text('images', { mode: 'json' }).$type<string[]>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -212,6 +213,7 @@ export const hostelRooms = sqliteTable('hostel_room', {
   capacity: integer('capacity').notNull().default(2),
   currentOccupancy: integer('current_occupancy').notNull().default(0),
   pricePerSemester: integer('price_per_semester').notNull(),
+  images: text('images', { mode: 'json' }).$type<string[]>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
