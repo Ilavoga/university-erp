@@ -1,14 +1,18 @@
 import { db } from "@/db";
 import { recommendations, enrollments } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const apiKey = process.env.GEMINI_API_KEY;
+const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // AI Recommendation Engine
 export async function generateRecommendations(userId: string) {
+  if (!genAI) {
+    console.warn("Gemini API key not found. Skipping recommendations.");
+    return [];
+  }
+
   // 1. Fetch user's enrollment history
   const userEnrollments = await db.query.enrollments.findMany({
     where: eq(enrollments.studentId, userId),
@@ -26,7 +30,7 @@ export async function generateRecommendations(userId: string) {
     return [];
   }
 
-  // 2. Call OpenAI API
+  // 2. Call Gemini API
   try {
     const prompt = `
       Based on the following courses a student is enrolled in:
@@ -38,20 +42,26 @@ export async function generateRecommendations(userId: string) {
       - resourceLink: a valid URL (use placeholder if needed)
       - reason: short explanation
       - relevanceScore: number between 0-100
+      
+      Do not include markdown formatting like \`\`\`json. Just return the raw JSON array.
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
-      response_format: { type: "json_object" },
+    const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
     });
 
-    const content = completion.choices[0].message.content;
-    if (!content) return [];
+    // Extract text directly from the response property
+    let text = response.text;
+    if (!text) {
+      throw new Error("No text generated");
+    }
 
-    const result = JSON.parse(content);
-    const suggestions = result.recommendations || result.resources || result; // Handle potential variations in JSON structure
+    // Clean up markdown if present
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
+    const suggestions = JSON.parse(text);
+    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newRecommendations = Array.isArray(suggestions) ? suggestions.map((item: any) => ({
       userId,
@@ -77,7 +87,7 @@ export async function generateRecommendations(userId: string) {
     return [];
 
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("Gemini API Error:", error);
     // Fallback to empty or cached recommendations
     return [];
   }
