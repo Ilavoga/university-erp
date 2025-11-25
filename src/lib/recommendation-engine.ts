@@ -1,94 +1,108 @@
-import { db } from "@/db";
-import { recommendations, enrollments } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
+import { db } from "@/db";
+import { users, enrollments } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
+const apiKey = process.env.GOOGLE_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-// AI Recommendation Engine
-export async function generateRecommendations(userId: string) {
-  if (!genAI) {
-    console.warn("Gemini API key not found. Skipping recommendations.");
+export interface Recommendation {
+  type: "RESOURCE" | "EVENT" | "COURSE";
+  title: string;
+  description: string;
+  resourceLink?: string;
+  reason: string;
+  relevanceScore: number;
+}
+
+export async function generateRecommendations(userId: string): Promise<Recommendation[]> {
+  if (!ai) {
+    console.warn("GOOGLE_API_KEY is not set. Skipping recommendations.");
     return [];
   }
 
-  // 1. Fetch user's enrollment history
-  const userEnrollments = await db.query.enrollments.findMany({
-    where: eq(enrollments.studentId, userId),
-    with: {
-      course: true
-    }
-  });
-
-  const enrolledCourses = userEnrollments.map(e => ({
-    code: e.course.code,
-    title: e.course.title
-  }));
-
-  if (enrolledCourses.length === 0) {
-    return [];
-  }
-
-  // 2. Call Gemini API
   try {
-    const prompt = `
-      Based on the following courses a student is enrolled in:
-      ${JSON.stringify(enrolledCourses)}
+    // 1. Fetch User Profile
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        name: true,
+        role: true,
+        profileData: true,
+      },
+    });
 
-      Suggest 3 academic resources or events that would be helpful.
+    if (!user) {
+      console.warn(`User ${userId} not found.`);
+      return [];
+    }
+
+    // 2. Fetch Enrolled Courses
+    const userEnrollments = await db.query.enrollments.findMany({
+      where: eq(enrollments.studentId, userId),
+      with: {
+        course: true,
+        grades: {
+          with: {
+            assignment: true,
+          },
+        },
+      },
+    });
+
+    const enrolledCourses = userEnrollments.map((e) => ({
+      code: e.course.code,
+      title: e.course.title,
+      description: e.course.description,
+      status: e.status,
+      grades: e.grades.map((g) => ({
+        assignment: g.assignment.title,
+        score: g.scoreObtained,
+      })),
+    }));
+
+    // 3. Construct Prompt
+    const prompt = `
+      As an academic advisor for a university student, analyze the following profile and course history to suggest 3 relevant academic resources, events, or future courses.
+
+      Student Profile:
+      - Name: ${user.name}
+      - Role: ${user.role}
+      - Interests/Data: ${JSON.stringify(user.profileData || {})}
+
+      Current Enrollments & Performance:
+      ${JSON.stringify(enrolledCourses, null, 2)}
+
+      Task:
+      Suggest 3 academic resources, events, or courses that would be helpful for this student's growth.
+      
       Return ONLY a JSON array with objects having these fields:
       - type: "RESOURCE" or "EVENT" or "COURSE"
+      - title: string
+      - description: string
       - resourceLink: a valid URL (use placeholder if needed)
-      - reason: short explanation
+      - reason: short explanation of why this is recommended based on their profile/performance
       - relevanceScore: number between 0-100
-      
+
       Do not include markdown formatting like \`\`\`json. Just return the raw JSON array.
     `;
 
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
     });
 
-    // Extract text directly from the response property
     let text = response.text;
-    if (!text) {
-      throw new Error("No text generated");
-    }
-
-    // Clean up markdown if present
-    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-
-    const suggestions = JSON.parse(text);
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newRecommendations = Array.isArray(suggestions) ? suggestions.map((item: any) => ({
-      userId,
-      type: item.type,
-      resourceLink: item.resourceLink,
-      reason: item.reason,
-      relevanceScore: item.relevanceScore
-    })) : [];
-
-    // 3. Seed Database
-    if (newRecommendations.length > 0) {
-      // Filter out invalid types if necessary, or trust the AI
-      const validTypes = ["COURSE", "RESOURCE", "EVENT"];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const validRecommendations = newRecommendations.filter((r: any) => validTypes.includes(r.type));
-      
-      if (validRecommendations.length > 0) {
-         const inserted = await db.insert(recommendations).values(validRecommendations).returning();
-         return inserted;
-      }
+    if (text) {
+        text = text.replace(/```json\n?|\n?```/g, "").trim();
+        return JSON.parse(text) as Recommendation[];
     }
-
+    
     return [];
 
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    // Fallback to empty or cached recommendations
+    console.error("Error generating recommendations:", error);
     return [];
   }
 }
