@@ -195,6 +195,97 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
+// Phase 3: Housing (Internal & External)
+
+export const hostelBlocks = sqliteTable('hostel_block', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  location: text('location'), // e.g., "North Wing", "Campus A"
+  genderRestriction: text('gender_restriction', { enum: ['MALE', 'FEMALE', 'MIXED'] }).default('MIXED'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const hostelRooms = sqliteTable('hostel_room', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  blockId: text('block_id').notNull().references(() => hostelBlocks.id, { onDelete: 'cascade' }),
+  roomNumber: text('room_number').notNull(),
+  capacity: integer('capacity').notNull().default(2),
+  currentOccupancy: integer('current_occupancy').notNull().default(0),
+  pricePerSemester: integer('price_per_semester').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const roomBookings = sqliteTable('room_booking', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  roomId: text('room_id').notNull().references(() => hostelRooms.id, { onDelete: 'cascade' }),
+  semester: text('semester').notNull(), // e.g., "Fall 2025"
+  status: text('status', { enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'REJECTED'] }).notNull().default('PENDING'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const externalListings = sqliteTable('external_listing', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  landlordId: text('landlord_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  location: text('location').notNull(),
+  price: integer('price').notNull(), // Monthly rent
+  images: text('images', { mode: 'json' }).$type<string[]>(),
+  isAvailable: integer('is_available', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const listingInquiries = sqliteTable('listing_inquiry', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  listingId: text('listing_id').notNull().references(() => externalListings.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const hostelBlocksRelations = relations(hostelBlocks, ({ many }) => ({
+  rooms: many(hostelRooms),
+}));
+
+export const hostelRoomsRelations = relations(hostelRooms, ({ one, many }) => ({
+  block: one(hostelBlocks, {
+    fields: [hostelRooms.blockId],
+    references: [hostelBlocks.id],
+  }),
+  bookings: many(roomBookings),
+}));
+
+export const roomBookingsRelations = relations(roomBookings, ({ one }) => ({
+  student: one(users, {
+    fields: [roomBookings.studentId],
+    references: [users.id],
+  }),
+  room: one(hostelRooms, {
+    fields: [roomBookings.roomId],
+    references: [hostelRooms.id],
+  }),
+}));
+
+export const externalListingsRelations = relations(externalListings, ({ one, many }) => ({
+  landlord: one(users, {
+    fields: [externalListings.landlordId],
+    references: [users.id],
+  }),
+  inquiries: many(listingInquiries),
+}));
+
+export const listingInquiriesRelations = relations(listingInquiries, ({ one }) => ({
+  student: one(users, {
+    fields: [listingInquiries.studentId],
+    references: [users.id],
+  }),
+  listing: one(externalListings, {
+    fields: [listingInquiries.listingId],
+    references: [externalListings.id],
+  }),
+}));
+
 // Type exports
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
