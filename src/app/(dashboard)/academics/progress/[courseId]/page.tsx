@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { enrollments, grades, assignments, courses } from "@/db/schema";
+import { enrollments, grades, assignments, courses, attendance } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
 import { ProgressChart } from "@/components/academics/progress-chart";
@@ -36,6 +36,15 @@ export default async function CourseProgressPage({ params }: PageProps) {
   if (!enrollment) {
     notFound();
   }
+
+  // Fetch attendance stats
+  const attendanceRecords = await db.query.attendance.findMany({
+    where: eq(attendance.enrollmentId, enrollment.id),
+  });
+
+  const totalClasses = attendanceRecords.length;
+  const presentClasses = attendanceRecords.filter(a => a.status === "PRESENT").length;
+  const attendancePercentage = totalClasses > 0 ? (presentClasses / totalClasses) * 100 : 0;
 
   // Prepare data for chart
   const chartData = enrollment.grades.map(grade => ({
@@ -74,16 +83,27 @@ export default async function CourseProgressPage({ params }: PageProps) {
           </CardContent>
         </Card>
         
-        {/* Placeholder for Attendance Stats */}
+        {/* Attendance Stats */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Attendance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">N/A</div>
-            <p className="text-xs text-muted-foreground">
-              Attendance tracking not yet active
-            </p>
+            {totalClasses > 0 ? (
+              <>
+                <div className="text-2xl font-bold">{attendancePercentage.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {presentClasses} / {totalClasses} classes attended
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">N/A</div>
+                <p className="text-xs text-muted-foreground">
+                  Attendance tracking not yet active
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -114,7 +134,7 @@ export default async function CourseProgressPage({ params }: PageProps) {
                   <div>
                     <p className="font-medium">{grade.assignment.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      Graded on {grade.gradedAt ? new Date(grade.gradedAt).toLocaleDateString() : 'N/A'}
+                      Graded on {grade.gradedAt ? new Date(grade.gradedAt).toLocaleDateString() : 'Date not recorded'}
                     </p>
                   </div>
                   <div className="font-bold">
