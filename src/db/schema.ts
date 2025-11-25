@@ -68,6 +68,9 @@ export const courses = sqliteTable('course', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   code: text('code').notNull().unique(),
   title: text('title').notNull(),
+  description: text('description'),
+  credits: integer('credits').notNull().default(3),
+  capacity: integer('capacity').notNull().default(30),
   lecturerId: text('lecturer_id').references(() => users.id),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
