@@ -4,6 +4,7 @@ import { courses, enrollments } from "@/db/schema";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
+import { logCourseCreated } from "@/lib/activity-logger";
 
 const courseSchema = z.object({
   code: z.string().min(3),
@@ -61,6 +62,9 @@ export async function POST(req: Request) {
       capacity,
       lecturerId: session.user.id,
     }).returning();
+
+    // Log activity and send notification to faculty
+    await logCourseCreated(session.user.id, course.id, course.title);
 
     return NextResponse.json(course);
   } catch (error) {
