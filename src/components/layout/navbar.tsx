@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { UserNav } from "./user-nav"
 import { Button } from "@/components/ui/button"
 import { SidebarSheet } from "@/components/layout/sidebar"
+import { NotificationCenter } from "@/components/engagement/notification-center"
 
 export async function Navbar() {
   const session = await auth()
@@ -20,7 +21,10 @@ export async function Navbar() {
 
         <div className="flex items-center gap-4">
           {user ? (
-            <UserNav user={user} />
+            <>
+              <NotificationCenter />
+              <UserNav user={user} />
+            </>
           ) : (
             <>
               <Button variant="ghost" asChild>
