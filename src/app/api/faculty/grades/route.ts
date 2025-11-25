@@ -38,23 +38,52 @@ export async function POST(req: Request) {
 
       if (!enrollment) return new NextResponse("Enrollment not found", { status: 404 });
 
-      await db.insert(grades).values({
-        enrollmentId,
-        assignmentId,
-        scoreObtained,
+      // Check for existing grade
+      const existingGrade = await db.query.grades.findFirst({
+        where: and(
+          eq(grades.enrollmentId, enrollmentId),
+          eq(grades.assignmentId, assignmentId)
+        ),
       });
+
+      if (existingGrade) {
+        await db.update(grades)
+          .set({ scoreObtained, gradedAt: new Date() })
+          .where(eq(grades.id, existingGrade.id));
+      } else {
+        await db.insert(grades).values({
+          enrollmentId,
+          assignmentId,
+          scoreObtained,
+        });
+      }
 
       return NextResponse.json({ success: true });
     } 
     
     if (type === "attendance") {
       const { enrollmentId, date, status } = attendanceSchema.parse(body);
+      const attendanceDate = new Date(date);
 
-      await db.insert(attendance).values({
-        enrollmentId,
-        date: new Date(date),
-        status,
+      // Check for existing attendance
+      const existingAttendance = await db.query.attendance.findFirst({
+        where: and(
+          eq(attendance.enrollmentId, enrollmentId),
+          eq(attendance.date, attendanceDate)
+        ),
       });
+
+      if (existingAttendance) {
+        await db.update(attendance)
+          .set({ status })
+          .where(eq(attendance.id, existingAttendance.id));
+      } else {
+        await db.insert(attendance).values({
+          enrollmentId,
+          date: attendanceDate,
+          status,
+        });
+      }
 
       return NextResponse.json({ success: true });
     }
