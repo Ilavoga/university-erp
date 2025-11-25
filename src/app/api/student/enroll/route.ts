@@ -5,6 +5,7 @@ import { courses, enrollments } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logEnrollment } from "@/lib/activity-logger";
 
 const enrollSchema = z.object({
   courseId: z.string().min(1, "Course ID is required"),
@@ -58,6 +59,9 @@ export async function POST(req: Request) {
       status: "ACTIVE",
       enrolledAt: new Date(),
     });
+
+    // Log activity and send notification
+    await logEnrollment(session.user.id, body.courseId, course.title);
 
     return new NextResponse("Enrolled successfully", { status: 201 });
   } catch (error) {
