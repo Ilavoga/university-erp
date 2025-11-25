@@ -116,8 +116,35 @@ export const recommendations = sqliteTable('recommendation', {
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Phase 2: User Engagement & Notifications
+
+export const activityLogs = sqliteTable('activity_log', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  actionType: text('action_type', { 
+    enum: ['ENROLLED', 'DROPPED', 'GRADE_RECEIVED', 'ASSIGNMENT_SUBMITTED', 'ATTENDANCE_MARKED', 'COURSE_CREATED', 'PROFILE_UPDATED'] 
+  }).notNull(),
+  referenceId: text('reference_id'), // ID of related entity (courseId, assignmentId, etc.)
+  referenceType: text('reference_type'), // Type of reference (course, assignment, etc.)
+  metadata: text('metadata', { mode: 'json' }).$type<Record<string, unknown>>(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const notifications = sqliteTable('notification', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  type: text('type', { enum: ['INFO', 'SUCCESS', 'WARNING', 'ERROR'] }).notNull().default('INFO'),
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  link: text('link'), // Optional link to navigate to
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   enrollments: many(enrollments),
+  activityLogs: many(activityLogs),
+  notifications: many(notifications),
 }));
 
 export const coursesRelations = relations(courses, ({ many }) => ({
@@ -153,5 +180,25 @@ export const gradesRelations = relations(grades, ({ one }) => ({
     references: [assignments.id],
   }),
 }));
+
+export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [activityLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+// Type exports
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type NewActivityLog = typeof activityLogs.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
 
 
