@@ -30,6 +30,8 @@ export function ListingCard({
   landlordName,
 }: ListingCardProps) {
   const displayImage = images && images.length > 0 ? images[0] : "/placeholder-house.jpg";
+  // Check if it's an external URL (Supabase signed URLs) - skip Next.js optimization for these
+  const isExternalUrl = displayImage.startsWith("http");
 
   return (
     <Item variant="outline" asChild className="w-full hover:bg-accent/50">
@@ -41,6 +43,7 @@ export function ListingCard({
             width={96}
             height={96}
             className="h-full w-full object-cover"
+            unoptimized={isExternalUrl}
           />
         </ItemMedia>
         <ItemContent className="flex-1 min-w-0">
