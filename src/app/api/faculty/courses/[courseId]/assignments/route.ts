@@ -16,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   const session = await auth();
-  if (!session || session.user.role !== "FACULTY") {
+  if (!session || (session.user.role !== "FACULTY" && session.user.role !== "ADMIN")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -30,7 +30,7 @@ export async function POST(
       return new NextResponse("Course not found", { status: 404 });
     }
 
-    if (course.lecturerId !== session.user.id) {
+    if (course.lecturerId !== session.user.id && session.user.role !== "ADMIN") {
       return new NextResponse("Unauthorized", { status: 403 });
     }
 

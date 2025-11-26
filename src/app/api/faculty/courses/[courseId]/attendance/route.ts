@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   const session = await auth();
-  if (!session || session.user.role !== "FACULTY") {
+  if (!session || (session.user.role !== "FACULTY" && session.user.role !== "ADMIN")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
