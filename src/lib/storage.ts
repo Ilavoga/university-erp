@@ -19,6 +19,8 @@ export async function uploadImage(
 ): Promise<string | null> {
   const supabase = client || defaultSupabase;
   try {
+    console.log(`[uploadImage] Uploading to bucket: ${bucket}, path: ${path}`);
+    
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(path, file, {
@@ -27,17 +29,21 @@ export async function uploadImage(
       });
 
     if (error) {
-      console.error('Error uploading image:', error);
+      console.error('[uploadImage] Error uploading image:', error);
       throw error; // Throw so we can catch it in the API route
     }
+
+    console.log(`[uploadImage] Upload success, data.path: ${data.path}`);
 
     const { data: publicUrlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(data.path);
 
+    console.log(`[uploadImage] Public URL: ${publicUrlData.publicUrl}`);
+
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Unexpected error uploading image:', error);
+    console.error('[uploadImage] Unexpected error uploading image:', error);
     throw error;
   }
 }
@@ -52,7 +58,7 @@ export async function deleteImage(
   bucket: string = STORAGE_BUCKET
 ): Promise<boolean> {
   try {
-    const { error } = await supabase.storage.from(bucket).remove([path]);
+    const { error } = await defaultSupabase.storage.from(bucket).remove([path]);
     if (error) {
       console.error('Error deleting image:', error);
       return false;
@@ -70,6 +76,6 @@ export async function deleteImage(
  * @param bucket The storage bucket name (default: 'housing')
  */
 export function getImageUrl(path: string, bucket: string = STORAGE_BUCKET): string {
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  const { data } = defaultSupabase.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
 }
