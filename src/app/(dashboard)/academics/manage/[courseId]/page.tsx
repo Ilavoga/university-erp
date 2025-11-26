@@ -13,7 +13,7 @@ interface PageProps {
 
 export default async function CourseManagePage({ params }: PageProps) {
   const session = await auth();
-  if (!session || session.user.role !== "FACULTY") {
+  if (!session || (session.user.role !== "FACULTY" && session.user.role !== "ADMIN")) {
     redirect("/login");
   }
 

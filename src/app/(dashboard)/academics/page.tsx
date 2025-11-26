@@ -11,7 +11,7 @@ export default async function AcademicsPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  if (session.user.role === "FACULTY") {
+  if (session.user.role === "FACULTY" || session.user.role === "ADMIN") {
     return <FacultyDashboard />;
   }
 

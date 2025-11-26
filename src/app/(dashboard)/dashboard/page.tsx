@@ -127,9 +127,11 @@ export default async function DashboardPage() {
                 <p className="text-muted-foreground mb-4">
                   You haven&apos;t enrolled in any courses yet.
                 </p>
-                <Button asChild>
-                  <Link href="/academics/explore">Browse Courses</Link>
-                </Button>
+                {session.user.role === "STUDENT" && (
+                  <Button asChild>
+                    <Link href="/academics/explore">Browse Courses</Link>
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="space-y-3">

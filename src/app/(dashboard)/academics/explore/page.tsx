@@ -15,6 +15,10 @@ export default async function ExplorePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
+  if (session.user.role === "ADMIN" || session.user.role === "FACULTY") {
+    redirect("/academics");
+  }
+
   const recommendations = await generateRecommendations(session.user.id);
 
   // Fetch all courses with enrollment counts
