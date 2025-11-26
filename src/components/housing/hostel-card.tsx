@@ -29,6 +29,8 @@ export function HostelCard({
   availableRooms,
 }: HostelCardProps) {
   const displayImage = images && images.length > 0 ? images[0] : "/placeholder-hostel.jpg";
+  // Check if it's an external URL (Supabase signed URLs) - skip Next.js optimization for these
+  const isExternalUrl = displayImage.startsWith("http");
 
   return (
     <Item variant="outline" className="h-full">
@@ -39,6 +41,7 @@ export function HostelCard({
             alt={name}
             fill
             className="object-cover transition-transform hover:scale-105"
+            unoptimized={isExternalUrl}
           />
           <div className="absolute top-2 right-2">
             <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
