@@ -27,17 +27,25 @@ export async function createListingAction(formData: FormData) {
 
   const imageUrls: string[] = [];
 
+  console.log(`[createListingAction] Processing ${images.length} images for user ${session.user.id}`);
+
   for (const file of images) {
     if (file.size > 0 && file.type.startsWith("image/")) {
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
       const path = `listings/${session.user.id}/${timestamp}-${safeName}`;
       
+      console.log(`[createListingAction] Uploading: ${path}, size: ${file.size} bytes`);
+      
       // Use admin client for server-side upload
       const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+      console.log(`[createListingAction] Uploaded, URL: ${url}`);
+      
       if (url) imageUrls.push(url);
     }
   }
+
+  console.log(`[createListingAction] Final imageUrls:`, imageUrls);
 
   await db.insert(externalListings).values({
     landlordId: session.user.id,
@@ -67,6 +75,71 @@ export async function toggleListingAvailabilityAction(formData: FormData) {
     .update(externalListings)
     .set({ isAvailable: !isAvailable })
     .where(and(eq(externalListings.id, listingId), eq(externalListings.landlordId, session.user.id)));
+
+  revalidatePath("/housing/external");
+  revalidatePath("/housing/landlord");
+  revalidatePath(`/housing/external/${listingId}`);
+}
+
+export async function updateListingAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "LANDLORD") {
+    throw new Error("Unauthorized");
+  }
+
+  const listingId = formData.get("listingId") as string;
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const location = formData.get("location") as string;
+  const price = parseInt(formData.get("price") as string);
+  const existingImagesJson = formData.get("existingImages") as string;
+  const newImages = formData.getAll("images") as File[];
+
+  if (!listingId || !title || !location || !price) {
+    throw new Error("Missing required fields");
+  }
+
+  // Verify ownership
+  const listing = await db.query.externalListings.findFirst({
+    where: and(
+      eq(externalListings.id, listingId),
+      eq(externalListings.landlordId, session.user.id)
+    ),
+  });
+
+  if (!listing) {
+    throw new Error("Listing not found or unauthorized");
+  }
+
+  // Parse existing images that were kept
+  const existingImages: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
+
+  // Upload new images
+  const newImageUrls: string[] = [];
+  for (const file of newImages) {
+    if (file.size > 0 && file.type.startsWith("image/")) {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+      const path = `listings/${session.user.id}/${timestamp}-${safeName}`;
+      
+      const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+      if (url) newImageUrls.push(url);
+    }
+  }
+
+  // Combine existing and new images
+  const allImages = [...existingImages, ...newImageUrls];
+
+  await db
+    .update(externalListings)
+    .set({
+      title,
+      description,
+      location,
+      price,
+      images: allImages,
+    })
+    .where(eq(externalListings.id, listingId));
 
   revalidatePath("/housing/external");
   revalidatePath("/housing/landlord");
@@ -118,7 +191,7 @@ export async function bookRoomAction(formData: FormData) {
   redirect("/housing/internal?success=true");
 }
 
-export async function sendInquiryAction(formData: FormData) {
+export async function sendInquiryAction(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session) {
     throw new Error("Unauthorized");
@@ -138,7 +211,6 @@ export async function sendInquiryAction(formData: FormData) {
   });
 
   revalidatePath(`/housing/external/${listingId}`);
-  return { success: true };
 }
 
 export async function updateBookingStatusAction(formData: FormData) {
