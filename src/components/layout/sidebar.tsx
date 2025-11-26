@@ -61,7 +61,18 @@ function SidebarNav({ items, className, setOpen, ...props }: SidebarNavProps) {
   );
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  role?: string;
+}
+
+export function Sidebar({ role }: SidebarProps) {
+  const filteredItems = sidebarItems.filter(item => {
+    if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="pb-12 w-64 border-r min-h-[calc(100vh-4rem)] hidden md:block">
       <div className="space-y-4 py-4">
@@ -69,20 +80,27 @@ export function Sidebar() {
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
             Services
           </h2>
-          <SidebarNav items={sidebarItems} />
+          <SidebarNav items={filteredItems} />
         </div>
       </div>
     </div>
   );
 }
 
-export function SidebarSheet() {
+export function SidebarSheet({ role }: SidebarProps) {
   const [open, setOpen] = useState(false);
+
+  const filteredItems = sidebarItems.filter(item => {
+    if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="mr-2">
+        <Button variant="ghost" size="icon" className="mr-2 md:hidden">
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
@@ -92,7 +110,7 @@ export function SidebarSheet() {
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
             Services
           </h2>
-          <SidebarNav items={sidebarItems} setOpen={setOpen} />
+          <SidebarNav items={filteredItems} setOpen={setOpen} />
         </div>
       </SheetContent>
     </Sheet>
