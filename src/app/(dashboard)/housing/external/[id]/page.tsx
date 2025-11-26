@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import { ArrowLeft, MapPin, User, DollarSign } from "lucide-react";
-import { sendInquiryAction } from "@/actions/housing-actions";
+import { ArrowLeft, MapPin, User, Pencil } from "lucide-react";
+import { sendInquiryAction, toggleListingAvailabilityAction } from "@/actions/housing-actions";
 
 export default async function ListingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -28,6 +28,9 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   if (!listing) {
     notFound();
   }
+
+  // Check if current user is the landlord (owner) of this listing
+  const isOwner = session.user.id === listing.landlordId;
 
   const displayImages = listing.images && listing.images.length > 0 
     ? listing.images 
@@ -53,7 +56,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
           <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayImages[0]}
               alt={listing.title}
@@ -64,7 +66,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             <div className="grid grid-cols-4 gap-2">
               {displayImages.slice(1).map((img, i) => (
                 <div key={i} className="aspect-square overflow-hidden rounded-md bg-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img} alt={`Gallery ${i}`} className="h-full w-full object-cover" />
                 </div>
               ))}
@@ -107,29 +108,58 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Landlord</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form action={sendInquiryAction} className="space-y-4">
-                <input type="hidden" name="listingId" value={listing.id} />
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    placeholder="Hi, I'm interested in this property..."
-                    required
-                    rows={4}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={!listing.isAvailable}>
-                  Send Inquiry
+          {isOwner ? (
+            /* Owner controls - Edit and toggle availability */
+            <Card>
+              <CardHeader>
+                <CardTitle>Manage Listing</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button asChild className="w-full">
+                  <Link href={`/housing/landlord/edit/${listing.id}`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit Listing
+                  </Link>
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <form action={toggleListingAvailabilityAction}>
+                  <input type="hidden" name="listingId" value={listing.id} />
+                  <input type="hidden" name="isAvailable" value={String(listing.isAvailable)} />
+                  <Button 
+                    type="submit" 
+                    variant={listing.isAvailable ? "destructive" : "default"}
+                    className="w-full"
+                  >
+                    {listing.isAvailable ? "Mark as Rented" : "Mark as Available"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Contact form for non-owners */
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Landlord</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form action={sendInquiryAction} className="space-y-4">
+                  <input type="hidden" name="listingId" value={listing.id} />
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      placeholder="Hi, I'm interested in this property..."
+                      required
+                      rows={4}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={!listing.isAvailable}>
+                    Send Inquiry
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
