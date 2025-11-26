@@ -3,17 +3,19 @@ import { users, courses, enrollments, assignments, grades, hostelBlocks, hostelR
 import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
+// Use public URLs instead of signed URLs (signed URLs expire)
+// Public URL format: https://[project_id].supabase.co/storage/v1/object/public/[bucket]/[filename]
 const HOUSING_IMAGES = [
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/bernd-dittrich-pqgPtnEJ9uM-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9iZXJuZC1kaXR0cmljaC1wcWdQdG5FSjl1TS11bnNwbGFzaC5qcGciLCJpYXQiOjE3NjQxMDA3MzUsImV4cCI6MTc2NDcwNTUzNX0.nWoimEx7PMZ464Y7nPF4nS5JJNE9vWN0j41R9sibvBc",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/danist-soh-n_crSnNw1no-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9kYW5pc3Qtc29oLW5fY3JTbk53MW5vLXVuc3BsYXNoLmpwZyIsImlhdCI6MTc2NDEwMDc3NiwiZXhwIjoxNzY0NzA1NTc2fQ.0gUgxoX1zC0FW5QUnlSRUqgEnXkV8Hcyvb012YXvFLY",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/forest-plum-dx3p-YtcOCw-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9mb3Jlc3QtcGx1bS1keDNwLVl0Y09Ddy11bnNwbGFzaC5qcGciLCJpYXQiOjE3NjQxMDA3ODcsImV4cCI6MTc2NDcwNTU4N30.AoVAW5Y4gV_HwaccIipEPgeP8c9yxiOY4Np_0NlhSec",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/jisun-han-yC2TmgRjld8-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9qaXN1bi1oYW4teUMyVG1nUmpsZDgtdW5zcGxhc2guanBnIiwiaWF0IjoxNzY0MTAwNzk4LCJleHAiOjE3NjQ3MDU1OTh9.w7DKTBE2qzdprcMA0SoizlOzhOWAdaXs1ACucqD_7LM",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/marcin-czerniawski--BSQ4StaN7w-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9tYXJjaW4tY3plcm5pYXdza2ktLUJTUTRTdGFON3ctdW5zcGxhc2guanBnIiwiaWF0IjoxNzY0MTAwODA3LCJleHAiOjE3NjQ3MDU2MDd9.YUdTpg0Q_vM-vHjZsIcF5Q6UdGP_pWNOyxy6JUB8b5Y",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/michal-balog-uiqx-n5RVhg-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9taWNoYWwtYmFsb2ctdWlxeC1uNVJWaGctdW5zcGxhc2guanBnIiwiaWF0IjoxNzY0MTAwODIwLCJleHAiOjE3NjQ3MDU2MjB9.OTQal9mNjtQtg3hhF-HmWFY-VTVs9lkp6zcusU3u-iY",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/richard-stachmann--XUvtKvnNyc-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9yaWNoYXJkLXN0YWNobWFubi0tWFV2dEt2bk55Yy11bnNwbGFzaC5qcGciLCJpYXQiOjE3NjQxMDA4MjksImV4cCI6MTc2NDcwNTYyOX0.X03emfPERTEFdxbmcSR5lgOZlk_QFub6kt7ztLcGGAc",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/sheikh-abir-ali-aY5B_p7t1KY-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9zaGVpa2gtYWJpci1hbGktYVk1Ql9wN3QxS1ktdW5zcGxhc2guanBnIiwiaWF0IjoxNzY0MTAwODQ2LCJleHAiOjE3NjQ3MDU2NDZ9.BeQXd7di8ZaigoAQLSctAjYDlkdaEBSTEfL8OqGCAcs",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/tarun-anand-giri-yA1jueUBSGk-unsplash.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy90YXJ1bi1hbmFuZC1naXJpLXlBMWp1ZVVCU0drLXVuc3BsYXNoLmpwZyIsImlhdCI6MTc2NDEwMDg1NSwiZXhwIjoxNzY0NzA1NjU1fQ.WZMvNPF_s18id0WDmhDQDJMZBqqNDyBTcjTUSG97gJU",
-  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/sign/housing-images/West%20View%20-%20Downing%20Students%20Accommodation%20&%20Housing.jfif?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81MTdmMDhlZS00OTA0LTQ1YjUtYjhkOS1lNDZkNzZmY2EyZTkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJob3VzaW5nLWltYWdlcy9XZXN0IFZpZXcgLSBEb3duaW5nIFN0dWRlbnRzIEFjY29tbW9kYXRpb24gJiBIb3VzaW5nLmpmaWYiLCJpYXQiOjE3NjQxMDA4NjQsImV4cCI6MTc2NDcwNTY2NH0.8x5Flk4MyleNAzTCXjFBc6wqLEq3VbWPhkH74vANe70"
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/bernd-dittrich-pqgPtnEJ9uM-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/danist-soh-n_crSnNw1no-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/forest-plum-dx3p-YtcOCw-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/jisun-han-yC2TmgRjld8-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/marcin-czerniawski--BSQ4StaN7w-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/michal-balog-uiqx-n5RVhg-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/richard-stachmann--XUvtKvnNyc-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/sheikh-abir-ali-aY5B_p7t1KY-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/tarun-anand-giri-yA1jueUBSGk-unsplash.jpg",
+  "https://bwnjplrvmxmdixjwnvgd.supabase.co/storage/v1/object/public/housing-images/West%20View%20-%20Downing%20Students%20Accommodation%20&%20Housing.jfif"
 ];
 
 const getImages = (offset: number = 0) => 
