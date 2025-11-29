@@ -65,18 +65,25 @@ interface SidebarProps {
   role?: string;
 }
 
-const getSidebarItemsForRole = (role?: string) => sidebarItems.filter((item) => {
-  if (role === "FACULTY" && item.title === "Housing") {
-    return false;
-  }
-  if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
-    return false;
-  }
-  if ((item.title === "Academics" || item.title === "Explore") && role === "LANDLORD") {
-    return false;
-  }
-  return true;
-});
+const getSidebarItemsForRole = (role?: string) => sidebarItems
+  .map((item) => {
+    if (role === "ADMIN" && item.title === "Housing") {
+      return { ...item, href: "/housing/admin" };
+    }
+    return item;
+  })
+  .filter((item) => {
+    if (role === "FACULTY" && item.title === "Housing") {
+      return false;
+    }
+    if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
+      return false;
+    }
+    if ((item.title === "Academics" || item.title === "Explore") && role === "LANDLORD") {
+      return false;
+    }
+    return true;
+  });
 
 export function Sidebar({ role }: SidebarProps) {
   const filteredItems = getSidebarItemsForRole(role);
