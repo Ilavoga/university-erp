@@ -5,6 +5,13 @@ import { Navbar } from "@/components/layout/navbar";
 export default async function Home() {
   const session = await auth();
 
+  // Determine dashboard link based on role
+  const getDashboardLink = () => {
+    if (!session) return "/login";
+    if (session.user.role === "LANDLORD") return "/housing/landlord";
+    return "/dashboard";
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -19,7 +26,7 @@ export default async function Home() {
       <div className="flex gap-4">
         {session ? (
           <Link 
-            href="/dashboard" 
+            href={getDashboardLink()} 
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Go to Dashboard
