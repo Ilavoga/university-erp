@@ -123,7 +123,7 @@ async function AdminDashboard({ session, unreadCount }: { session: { user: { id:
               </Link>
             </Button>
             <Button asChild className="w-full justify-start" variant="outline">
-              <Link href="/housing">
+              <Link href="/housing/admin">
                 <Home className="mr-2 h-4 w-4" />
                 Manage Housing
               </Link>
