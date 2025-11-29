@@ -65,13 +65,21 @@ interface SidebarProps {
   role?: string;
 }
 
+const getSidebarItemsForRole = (role?: string) => sidebarItems.filter((item) => {
+  if (role === "FACULTY" && item.title === "Housing") {
+    return false;
+  }
+  if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
+    return false;
+  }
+  if ((item.title === "Academics" || item.title === "Explore") && role === "LANDLORD") {
+    return false;
+  }
+  return true;
+});
+
 export function Sidebar({ role }: SidebarProps) {
-  const filteredItems = sidebarItems.filter(item => {
-    if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
-      return false;
-    }
-    return true;
-  });
+  const filteredItems = getSidebarItemsForRole(role);
 
   return (
     <div className="pb-12 w-64 border-r min-h-[calc(100vh-4rem)] hidden md:block">
@@ -90,12 +98,7 @@ export function Sidebar({ role }: SidebarProps) {
 export function SidebarSheet({ role }: SidebarProps) {
   const [open, setOpen] = useState(false);
 
-  const filteredItems = sidebarItems.filter(item => {
-    if (item.title === "Explore" && (role === "ADMIN" || role === "FACULTY")) {
-      return false;
-    }
-    return true;
-  });
+  const filteredItems = getSidebarItemsForRole(role);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
