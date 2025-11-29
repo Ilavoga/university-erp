@@ -1,13 +1,47 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Building, Home, LayoutDashboard, Shield } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Building, Home, LayoutDashboard } from "lucide-react";
 import { auth } from "@/auth";
 
 export default async function HousingPage() {
   const session = await auth();
   const isLandlord = session?.user?.role === "LANDLORD";
-  const isAdmin = session?.user?.role === "ADMIN";
+
+  if (session?.user?.role === "ADMIN") {
+    redirect("/housing/admin");
+  }
+
+  if (isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Housing Control</h1>
+          <p className="text-muted-foreground">
+            Access the centralized housing management panel.
+          </p>
+        </div>
+
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-6 w-6" />
+              Admin Housing Panel
+            </CardTitle>
+            <CardDescription>
+              Oversee hostels, verify landlords, and manage all student bookings in one place.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="destructive" className="w-full">
+              <Link href="/housing/admin">Open Admin Panel</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,26 +105,5 @@ export default async function HousingPage() {
             </CardContent>
           </Card>
         )}
-
-        {isAdmin && (
-          <Card className="border-destructive">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-6 w-6" />
-                Admin Housing Control
-              </CardTitle>
-              <CardDescription>
-                Manage hostels, verify landlords, and oversee all bookings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="destructive" className="w-full">
-                <Link href="/housing/admin">Access Admin Panel</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
-    </div>
-  );
-}
+        )}
