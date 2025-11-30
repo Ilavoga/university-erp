@@ -32,9 +32,10 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   initialData: ProfileFormValues;
+  role: string; // user.role passed from profile page
 }
 
-export function ProfileForm({ initialData }: ProfileFormProps) {
+export function ProfileForm({ initialData, role }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -140,37 +141,41 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             )}
           />
 
+          {(role === 'STUDENT' || role === 'FACULTY') && (
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Computer Science" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+
+        {(role === 'STUDENT' || role === 'FACULTY') && (
           <FormField
             control={form.control}
-            name="department"
+            name="studentId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Department</FormLabel>
+                <FormLabel>{role === 'STUDENT' ? 'Student ID' : 'Staff ID'}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Computer Science" {...field} />
+                  <Input placeholder={role === 'STUDENT' ? 'STU-2024-001' : 'STA-2024-001'} {...field} />
                 </FormControl>
+                <FormDescription>
+                  Your official university identification number.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="studentId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Student/Staff ID</FormLabel>
-              <FormControl>
-                <Input placeholder="STU-2024-001" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your official university identification number.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        )}
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isLoading}>
