@@ -46,27 +46,27 @@
 *Objective: Centralized activity feed and settings.*
 
 ### Database & Schema
-- [ ] **Schema - Activity:** Create `ActivityLog` table (user_id, action_type, reference_id, timestamp).
-- [ ] **Schema - Notifications:** Create `Notification` table (user_id, message, is_read, type, link).
+- [X] **Schema - Activity:** Create `ActivityLog` table (user_id, action_type, reference_id, timestamp).
+- [X] **Schema - Notifications:** Create `Notification` table (user_id, message, is_read, type, link).
 
 ### API & Logic
-- [ ] **Activity Logger:** Utility to log key actions (e.g., "Submitted Assignment", "Viewed Grade").
-- [ ] **Notification System:** Logic to create notifications on triggers (e.g., Grade posted -> Notify Student).
+- [X] **Activity Logger:** Utility to log key actions (e.g., "Submitted Assignment", "Viewed Grade").
+- [X] **Notification System:** Logic to create notifications on triggers (e.g., Grade posted -> Notify Student).
 
 ### UI / Client
 - [x] **Sidebar:** Implement sidebar navigation for services (Dashboard, Academics, Housing).
-- [ ] **Activity Feed:** Component on Dashboard showing recent user activity.
-- [ ] **Notification Center:** Dropdown/Page for notifications.
+- [X] **Activity Feed:** Component on Dashboard showing recent user activity.
+- [X] **Notification Center:** Dropdown/Page for notifications.
 
 
 ### API & Logic
-- [ ] **Event Triggers:** Implement database hooks/middleware to insert into `ActivityLog` whenever a User creates a booking, submits an assignment, or posts a listing.
-- [ ] **Notification Endpoint:** `GET /api/notifications` (polled every 30s) and `PATCH /api/notifications/[id]` (mark read).
+- [X] **Event Triggers:** Implement database hooks/middleware to insert into `ActivityLog` whenever a User creates a booking, submits an assignment, or posts a listing.
+- [X] **Notification Endpoint:** `GET /api/notifications` (polled every 30s) and `PATCH /api/notifications/[id]` (mark read).
 
 ### UI / Client
-- [ ] **Recent Activity Tab:** Create a widget showing a chronological list of `ActivityLog` entries.
-- [ ] **Account Settings:** Create dynamic forms to update `User.profile_data`.
-- [ ] **Notification Center:** Create a dropdown/page for notifications with "Mark all read" functionality.
+- [X] **Recent Activity Tab:** Create a widget showing a chronological list of `ActivityLog` entries.
+- [X] **Account Settings:** Create dynamic forms to update `User.profile_data`.
+- [X] **Notification Center:** Create a dropdown/page for notifications with "Mark all read" functionality.
 
 ---
 
@@ -74,8 +74,8 @@
 *Objective: Dual-system for on-campus booking and off-campus listings.*
 
 ### Database & Schema
-- [ ] **Schema - Internal:** Create `HostelBlock`, `HostelRoom` (capacity, current_occupancy), `RoomBooking` (student_id, room_id, semester).
-- [ ] **Schema - External:** Create `ExternalListing` (landlord_id, location, price, images, is_available), `ListingInquiry` (student_id, listing_id, message).
+- [X] **Schema - Internal:** Create `HostelBlock`, `HostelRoom` (capacity, current_occupancy), `RoomBooking` (student_id, room_id, semester).
+- [X] **Schema - External:** Create `ExternalListing` (landlord_id, location, price, images, is_available), `ListingInquiry` (student_id, listing_id, message).
 
 ### API & Logic
 - [ ] **Availability Logic (Internal):** API to check `HostelRoom` capacity before allowing a `POST` to `RoomBooking`.
@@ -93,10 +93,11 @@
 *Objective: Route-based flexible transport tracking.*
 
 ### Database & Schema
-- [ ] **Schema - Infrastructure:** Create `Route` (name, start_point, end_point) and `RouteStop` (route_id, stop_name, sequence_order).
-- [ ] **Schema - Fleet:** Create `Vehicle` (plate_number, capacity, current_route_id) and `VehicleStatus` (vehicle_id, current_stop_id, status: 'LOADING', 'DEPARTED', 'EN_ROUTE').
+- [x] **Schema - Infrastructure:** Create `Route` (name, start_point, end_point) and `RouteStop` (route_id, stop_name, sequence_order).
+- [x] **Schema - Fleet:** Create `Vehicle` (plate_number, capacity, current_route_id) and `VehicleStatus` (vehicle_id, current_stop_id, status: 'LOADING', 'DEPARTED', 'EN_ROUTE').
 
 ### API & Logic
+- [ ] **Branch Setup (Planned):** Create `feature/phase-4-api` from `develop`.
 - [ ] **Status Updates (Admin/Driver):** Endpoint `PATCH /api/transport/vehicle/[id]` to update location/status.
 - [ ] **Student Query:** `GET /api/transport/routes` returning routes with nested active vehicles.
 
