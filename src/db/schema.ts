@@ -294,4 +294,84 @@ export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 
+// Phase 4: Transportation (Routes, Stops, Fleet)
+
+export const routes = sqliteTable('route', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  startPoint: text('start_point').notNull(),
+  endPoint: text('end_point').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+export const routeStops = sqliteTable('route_stop', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  routeId: text('route_id').notNull().references(() => routes.id, { onDelete: 'cascade' }),
+  stopName: text('stop_name').notNull(),
+  sequenceOrder: integer('sequence_order').notNull(),
+});
+
+export const vehicles = sqliteTable('vehicle', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  plateNumber: text('plate_number').notNull().unique(),
+  capacity: integer('capacity').notNull(),
+  currentRouteId: text('current_route_id').references(() => routes.id),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+export const vehicleStatuses = sqliteTable('vehicle_status', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  vehicleId: text('vehicle_id').notNull().references(() => vehicles.id, { onDelete: 'cascade' }),
+  currentStopId: text('current_stop_id').references(() => routeStops.id),
+  status: text('status', { enum: ['LOADING', 'DEPARTED', 'EN_ROUTE'] }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+export const routesRelations = relations(routes, ({ many }) => ({
+  stops: many(routeStops),
+  vehicles: many(vehicles),
+}));
+
+export const routeStopsRelations = relations(routeStops, ({ one }) => ({
+  route: one(routes, {
+    fields: [routeStops.routeId],
+    references: [routes.id],
+  }),
+}));
+
+export const vehiclesRelations = relations(vehicles, ({ one, many }) => ({
+  currentRoute: one(routes, {
+    fields: [vehicles.currentRouteId],
+    references: [routes.id],
+  }),
+  statuses: many(vehicleStatuses),
+}));
+
+export const vehicleStatusesRelations = relations(vehicleStatuses, ({ one }) => ({
+  vehicle: one(vehicles, {
+    fields: [vehicleStatuses.vehicleId],
+    references: [vehicles.id],
+  }),
+  currentStop: one(routeStops, {
+    fields: [vehicleStatuses.currentStopId],
+    references: [routeStops.id],
+  }),
+}));
+
+// Type exports for Phase 4
+export type Route = typeof routes.$inferSelect;
+export type NewRoute = typeof routes.$inferInsert;
+export type RouteStop = typeof routeStops.$inferSelect;
+export type NewRouteStop = typeof routeStops.$inferInsert;
+export type Vehicle = typeof vehicles.$inferSelect;
+export type NewVehicle = typeof vehicles.$inferInsert;
+export type VehicleStatus = typeof vehicleStatuses.$inferSelect;
+export type NewVehicleStatus = typeof vehicleStatuses.$inferInsert;
+
 
