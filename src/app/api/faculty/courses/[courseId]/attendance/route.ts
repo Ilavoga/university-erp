@@ -21,7 +21,7 @@ export async function GET(
     return new NextResponse("Date is required", { status: 400 });
   }
 
-  const targetDate = new Date(dateStr).getTime();
+  const targetDate = new Date(dateStr);
 
   try {
     const records = await db

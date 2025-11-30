@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
       if (existingGrade) {
         await db.update(grades)
-          .set({ scoreObtained, gradedAt: Date.now() })
+          .set({ scoreObtained, gradedAt: new Date() })
           .where(eq(grades.id, existingGrade.id));
       } else {
         await db.insert(grades).values({
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     
     if (type === "attendance") {
       const { enrollmentId, date, status } = attendanceSchema.parse(body);
-      const attendanceDate = new Date(date).getTime();
+      const attendanceDate = new Date(date);
 
       // Get enrollment with related data
       const enrollment = await db.query.enrollments.findFirst({
