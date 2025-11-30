@@ -38,7 +38,8 @@ export async function PATCH(request: Request) {
       .set({
         name: name || currentUser.name,
         profileData: mergedProfileData,
-        updatedAt: Date.now(),
+        // Use a Date object so downstream code expecting .getTime() works
+        updatedAt: new Date(),
       })
       .where(eq(users.id, session.user.id))
       .returning();
