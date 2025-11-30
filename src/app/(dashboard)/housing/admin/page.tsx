@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { updateBookingStatusAction } from "@/actions/housing-actions";
 import { Button } from "@/components/ui/button";
 import { CreateHostelDialog, EditHostelDialog } from "@/components/housing/hostel-dialogs";
+import { HostelBlockRow } from "@/components/housing/hostel-block-row";
 
 export default async function AdminHousingPage() {
   const session = await auth();
@@ -113,51 +114,42 @@ export default async function AdminHousingPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Rooms</TableHead>
-                    <TableHead>Occupancy</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {hostels.map((block) => {
-                    const totalCapacity = block.rooms.reduce((acc, room) => acc + room.capacity, 0);
-                    const totalOccupancy = block.rooms.reduce((acc, room) => acc + room.currentOccupancy, 0);
-                    return (
-                      <TableRow key={block.id}>
-                        <TableCell className="font-medium">{block.name}</TableCell>
-                        <TableCell>{block.location}</TableCell>
-                        <TableCell>{block.genderRestriction || "Mixed"}</TableCell>
-                        <TableCell>{block.rooms.length}</TableCell>
-                        <TableCell>
-                          {totalOccupancy} / {totalCapacity}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <EditHostelDialog
-                            blockId={block.id}
-                            blockName={block.name}
-                            location={block.location ?? ""}
-                            genderRestriction={block.genderRestriction}
-                            images={block.images}
-                          />
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground pb-2">
+                  Click on any block to expand and manage its rooms
+                </p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]"></TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Rooms</TableHead>
+                      <TableHead>Occupancy</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {hostels.map((block) => (
+                      <HostelBlockRow
+                        key={block.id}
+                        blockId={block.id}
+                        blockName={block.name}
+                        location={block.location}
+                        genderRestriction={block.genderRestriction}
+                        rooms={block.rooms}
+                      />
+                    ))}
+                    {hostels.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No hostel blocks found. Create one to get started.
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {hostels.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        No hostel blocks found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
