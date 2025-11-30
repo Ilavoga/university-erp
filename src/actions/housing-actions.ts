@@ -242,7 +242,9 @@ export async function createHostelBlockAction(formData: FormData) {
 
   const name = formData.get("name") as string;
   const location = formData.get("location") as string;
-  const genderRestriction = (formData.get("genderRestriction") as string) ?? "MIXED";
+  const genderRestrictionRaw = (formData.get("genderRestriction") as string) ?? "MIXED";
+  const allowedGenders = ["MALE", "FEMALE", "MIXED"] as const;
+  const genderRestriction = (allowedGenders.find(g => g === genderRestrictionRaw) ?? "MIXED");
   const imageFiles = formData.getAll("images") as File[];
 
   if (!name || !location) {
@@ -266,7 +268,7 @@ export async function createHostelBlockAction(formData: FormData) {
   await db.insert(hostelBlocks).values({
     name,
     location,
-    genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
+    genderRestriction,
     images: imageUrls,
   });
 
@@ -282,7 +284,9 @@ export async function updateHostelBlockAction(formData: FormData) {
   const blockId = formData.get("blockId") as string;
   const name = formData.get("name") as string;
   const location = formData.get("location") as string;
-  const genderRestriction = formData.get("genderRestriction") as string;
+  const genderRestrictionRaw = formData.get("genderRestriction") as string;
+  const allowedGenders = ["MALE", "FEMALE", "MIXED"] as const;
+  const genderRestriction = (allowedGenders.find(g => g === genderRestrictionRaw) ?? "MIXED");
   const existingImagesJson = formData.get("existingImages") as string;
   const imagesToRemoveJson = formData.get("imagesToRemove") as string;
   const newImageFiles = formData.getAll("images") as File[];
@@ -328,7 +332,7 @@ export async function updateHostelBlockAction(formData: FormData) {
     .set({
       name,
       location,
-      genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
+      genderRestriction,
       images: finalImages,
     })
     .where(eq(hostelBlocks.id, blockId));

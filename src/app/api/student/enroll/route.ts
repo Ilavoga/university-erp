@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       studentId: session.user.id,
       courseId: body.courseId,
       status: "ACTIVE",
-      enrolledAt: Date.now(),
+      enrolledAt: new Date(),
     });
 
     // Log activity and send notification
