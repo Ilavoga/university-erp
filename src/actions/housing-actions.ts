@@ -283,30 +283,26 @@ export async function updateHostelBlockAction(formData: FormData) {
   const name = formData.get("name") as string;
   const location = formData.get("location") as string;
   const genderRestriction = formData.get("genderRestriction") as string;
-  const imageFiles = formData.getAll("images") as File[];
+  const existingImagesJson = formData.get("existingImages") as string;
+  const imagesToRemoveJson = formData.get("imagesToRemove") as string;
+  const newImageFiles = formData.getAll("images") as File[];
 
   if (!blockId || !name || !location) {
     throw new Error("Missing required fields");
   }
 
-  // Prepare update data
-  const updateData: {
-    name: string;
-    location: string;
-    genderRestriction: "MALE" | "FEMALE" | "MIXED";
-    images?: string[];
-  } = {
-    name,
-    location,
-    genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
-  };
+  // Parse existing images data
+  const existingImages: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
+  const imagesToRemove: string[] = imagesToRemoveJson ? JSON.parse(imagesToRemoveJson) : [];
 
-  // Only update images if new ones are provided
-  if (imageFiles.length > 0 && imageFiles[0].size > 0) {
-    const MAX_IMAGES = 6;
-    const imageUrls: string[] = [];
-    
-    for (const file of imageFiles.slice(0, MAX_IMAGES)) {
+  // Calculate remaining slots for new images
+  const MAX_IMAGES = 6;
+  const remainingSlots = Math.max(0, MAX_IMAGES - existingImages.length);
+
+  // Upload new images
+  const newImageUrls: string[] = [];
+  if (remainingSlots > 0) {
+    for (const file of newImageFiles.slice(0, remainingSlots)) {
       if (file && file.size > 0 && file.type.startsWith("image/")) {
         const timestamp = Date.now();
         const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
@@ -314,17 +310,158 @@ export async function updateHostelBlockAction(formData: FormData) {
         const { uploadImage } = await import("@/lib/storage");
         const { supabaseAdmin } = await import("@/lib/supabase");
         const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
-        if (url) imageUrls.push(url);
+        if (url) newImageUrls.push(url);
       }
     }
-    
-    updateData.images = imageUrls;
   }
+
+  // Combine existing (not removed) images with new uploads
+  const finalImages = [...existingImages, ...newImageUrls];
+
+  // TODO: Optionally delete removed images from Supabase storage
+  // for (const url of imagesToRemove) {
+  //   // Delete from storage
+  // }
 
   await db
     .update(hostelBlocks)
-    .set(updateData)
+    .set({
+      name,
+      location,
+      genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
+      images: finalImages,
+    })
     .where(eq(hostelBlocks.id, blockId));
+
+  revalidatePath("/housing/admin");
+}
+
+// Hostel Room Management Actions
+export async function createHostelRoomAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+
+  const blockId = formData.get("blockId") as string;
+  const roomNumber = formData.get("roomNumber") as string;
+  const capacity = parseInt(formData.get("capacity") as string);
+  const pricePerSemester = parseInt(formData.get("pricePerSemester") as string);
+  const imageFiles = formData.getAll("images") as File[];
+
+  if (!blockId || !roomNumber || !capacity || !pricePerSemester) {
+    throw new Error("Missing required fields");
+  }
+
+  if (capacity < 1 || pricePerSemester < 0) {
+    throw new Error("Invalid capacity or price");
+  }
+
+  const MAX_IMAGES = 6;
+  const imageUrls: string[] = [];
+  for (const file of imageFiles.slice(0, MAX_IMAGES)) {
+    if (file && file.size > 0 && file.type.startsWith("image/")) {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+      const path = `hostels/${blockId}/rooms/${timestamp}-${safeName}`;
+      const { uploadImage } = await import("@/lib/storage");
+      const { supabaseAdmin } = await import("@/lib/supabase");
+      const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+      if (url) imageUrls.push(url);
+    }
+  }
+
+  await db.insert(hostelRooms).values({
+    blockId,
+    roomNumber,
+    capacity,
+    currentOccupancy: 0,
+    pricePerSemester,
+    images: imageUrls,
+  });
+
+  revalidatePath("/housing/admin");
+}
+
+export async function updateHostelRoomAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+
+  const roomId = formData.get("roomId") as string;
+  const blockId = formData.get("blockId") as string;
+  const roomNumber = formData.get("roomNumber") as string;
+  const capacity = parseInt(formData.get("capacity") as string);
+  const pricePerSemester = parseInt(formData.get("pricePerSemester") as string);
+  const existingImagesJson = formData.get("existingImages") as string;
+  const imagesToRemoveJson = formData.get("imagesToRemove") as string;
+  const newImageFiles = formData.getAll("images") as File[];
+
+  if (!roomId || !blockId || !roomNumber || !capacity || !pricePerSemester) {
+    throw new Error("Missing required fields");
+  }
+
+  if (capacity < 1 || pricePerSemester < 0) {
+    throw new Error("Invalid capacity or price");
+  }
+
+  const existingImages: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
+  const imagesToRemove: string[] = imagesToRemoveJson ? JSON.parse(imagesToRemoveJson) : [];
+
+  const MAX_IMAGES = 6;
+  const remainingSlots = Math.max(0, MAX_IMAGES - existingImages.length);
+
+  const newImageUrls: string[] = [];
+  if (remainingSlots > 0) {
+    for (const file of newImageFiles.slice(0, remainingSlots)) {
+      if (file && file.size > 0 && file.type.startsWith("image/")) {
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+        const path = `hostels/${blockId}/rooms/${timestamp}-${safeName}`;
+        const { uploadImage } = await import("@/lib/storage");
+        const { supabaseAdmin } = await import("@/lib/supabase");
+        const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+        if (url) newImageUrls.push(url);
+      }
+    }
+  }
+
+  const finalImages = [...existingImages, ...newImageUrls];
+
+  await db
+    .update(hostelRooms)
+    .set({
+      roomNumber,
+      capacity,
+      pricePerSemester,
+      images: finalImages,
+    })
+    .where(eq(hostelRooms.id, roomId));
+
+  revalidatePath("/housing/admin");
+}
+
+export async function deleteHostelRoomAction(roomId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+
+  if (!roomId) {
+    throw new Error("Room ID is required");
+  }
+
+  // Check if room has active bookings
+  const activeBookings = await db.query.roomBookings.findFirst({
+    where: eq(roomBookings.roomId, roomId),
+  });
+
+  if (activeBookings && activeBookings.status === "CONFIRMED") {
+    throw new Error("Cannot delete room with confirmed bookings");
+  }
+
+  await db.delete(hostelRooms).where(eq(hostelRooms.id, roomId));
 
   revalidatePath("/housing/admin");
 }
