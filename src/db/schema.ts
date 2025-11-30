@@ -11,8 +11,8 @@ export const users = sqliteTable('user', {
   passwordHash: text('password_hash'), // For credentials provider
   role: text('role', { enum: ['STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'] }).notNull().default('STUDENT'),
   profileData: text('profile_data', { mode: 'json' }).$type<Record<string, unknown>>(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const accounts = sqliteTable(
@@ -72,7 +72,7 @@ export const courses = sqliteTable('course', {
   credits: integer('credits').notNull().default(3),
   capacity: integer('capacity').notNull().default(30),
   lecturerId: text('lecturer_id').references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const enrollments = sqliteTable('enrollment', {
@@ -80,7 +80,7 @@ export const enrollments = sqliteTable('enrollment', {
   studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
   status: text('status', { enum: ['ACTIVE', 'COMPLETED', 'DROPPED'] }).notNull().default('ACTIVE'),
-  enrolledAt: integer('enrolled_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  enrolledAt: integer('enrolled_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const assignments = sqliteTable('assignment', {
@@ -88,7 +88,7 @@ export const assignments = sqliteTable('assignment', {
   courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   totalMarks: integer('total_marks').notNull(),
-  dueDate: integer('due_date', { mode: 'timestamp' }),
+  dueDate: integer('due_date', { mode: 'timestamp_ms' }),
 });
 
 export const grades = sqliteTable('grade', {
@@ -96,13 +96,13 @@ export const grades = sqliteTable('grade', {
   enrollmentId: text('enrollment_id').notNull().references(() => enrollments.id, { onDelete: 'cascade' }),
   assignmentId: text('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
   scoreObtained: integer('score_obtained').notNull(),
-  gradedAt: integer('graded_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  gradedAt: integer('graded_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const attendance = sqliteTable('attendance', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   enrollmentId: text('enrollment_id').notNull().references(() => enrollments.id, { onDelete: 'cascade' }),
-  date: integer('date', { mode: 'timestamp' }).notNull(),
+  date: integer('date', { mode: 'timestamp_ms' }).notNull(),
   status: text('status', { enum: ['PRESENT', 'ABSENT', 'EXCUSED'] }).notNull(),
 });
 
@@ -113,7 +113,7 @@ export const recommendations = sqliteTable('recommendation', {
   resourceLink: text('resource_link'),
   reason: text('reason'),
   relevanceScore: integer('relevance_score'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 // Phase 2: User Engagement & Notifications
@@ -127,7 +127,7 @@ export const activityLogs = sqliteTable('activity_log', {
   referenceId: text('reference_id'), // ID of related entity (courseId, assignmentId, etc.)
   referenceType: text('reference_type'), // Type of reference (course, assignment, etc.)
   metadata: text('metadata', { mode: 'json' }).$type<Record<string, unknown>>(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const notifications = sqliteTable('notification', {
@@ -138,7 +138,7 @@ export const notifications = sqliteTable('notification', {
   type: text('type', { enum: ['INFO', 'SUCCESS', 'WARNING', 'ERROR'] }).notNull().default('INFO'),
   isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
   link: text('link'), // Optional link to navigate to
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -203,7 +203,7 @@ export const hostelBlocks = sqliteTable('hostel_block', {
   location: text('location'), // e.g., "North Wing", "Campus A"
   genderRestriction: text('gender_restriction', { enum: ['MALE', 'FEMALE', 'MIXED'] }).default('MIXED'),
   images: text('images', { mode: 'json' }).$type<string[]>(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const hostelRooms = sqliteTable('hostel_room', {
@@ -214,7 +214,7 @@ export const hostelRooms = sqliteTable('hostel_room', {
   currentOccupancy: integer('current_occupancy').notNull().default(0),
   pricePerSemester: integer('price_per_semester').notNull(),
   images: text('images', { mode: 'json' }).$type<string[]>(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const roomBookings = sqliteTable('room_booking', {
@@ -223,7 +223,7 @@ export const roomBookings = sqliteTable('room_booking', {
   roomId: text('room_id').notNull().references(() => hostelRooms.id, { onDelete: 'cascade' }),
   semester: text('semester').notNull(), // e.g., "Fall 2025"
   status: text('status', { enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'REJECTED'] }).notNull().default('PENDING'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const externalListings = sqliteTable('external_listing', {
@@ -235,7 +235,7 @@ export const externalListings = sqliteTable('external_listing', {
   price: integer('price').notNull(), // Monthly rent
   images: text('images', { mode: 'json' }).$type<string[]>(),
   isAvailable: integer('is_available', { mode: 'boolean' }).notNull().default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const listingInquiries = sqliteTable('listing_inquiry', {
@@ -243,7 +243,7 @@ export const listingInquiries = sqliteTable('listing_inquiry', {
   studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   listingId: text('listing_id').notNull().references(() => externalListings.id, { onDelete: 'cascade' }),
   message: text('message').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 });
 
 export const hostelBlocksRelations = relations(hostelBlocks, ({ many }) => ({
