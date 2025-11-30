@@ -7,9 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
 import { updateBookingStatusAction } from "@/actions/housing-actions";
 import { Button } from "@/components/ui/button";
+import { CreateHostelDialog, EditHostelDialog } from "@/components/housing/hostel-dialogs";
 
 export default async function AdminHousingPage() {
   const session = await auth();
@@ -102,10 +102,15 @@ export default async function AdminHousingPage() {
         <TabsContent value="hostels">
           <Card>
             <CardHeader>
-              <CardTitle>Hostel Blocks</CardTitle>
-              <CardDescription>
-                Overview of on-campus housing blocks and occupancy.
-              </CardDescription>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <CardTitle>Hostel Blocks</CardTitle>
+                  <CardDescription>
+                    Overview of on-campus housing blocks and occupancy.
+                  </CardDescription>
+                </div>
+                <CreateHostelDialog />
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -116,6 +121,7 @@ export default async function AdminHousingPage() {
                     <TableHead>Type</TableHead>
                     <TableHead>Rooms</TableHead>
                     <TableHead>Occupancy</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -131,12 +137,21 @@ export default async function AdminHousingPage() {
                         <TableCell>
                           {totalOccupancy} / {totalCapacity}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <EditHostelDialog
+                            blockId={block.id}
+                            blockName={block.name}
+                            location={block.location ?? ""}
+                            genderRestriction={block.genderRestriction}
+                            images={block.images}
+                          />
+                        </TableCell>
                       </TableRow>
                     );
                   })}
                   {hostels.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
                         No hostel blocks found.
                       </TableCell>
                     </TableRow>
@@ -190,7 +205,7 @@ export default async function AdminHousingPage() {
                       </TableCell>
                       <TableCell>{booking.createdAt?.toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        {booking.status === "PENDING" && (
+                        {booking.status === "PENDING" ? (
                           <div className="flex justify-end gap-2">
                             <form action={updateBookingStatusAction}>
                               <input type="hidden" name="bookingId" value={booking.id} />
@@ -203,6 +218,8 @@ export default async function AdminHousingPage() {
                               <Button size="sm" variant="destructive">Reject</Button>
                             </form>
                           </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No actions</span>
                         )}
                       </TableCell>
                     </TableRow>
