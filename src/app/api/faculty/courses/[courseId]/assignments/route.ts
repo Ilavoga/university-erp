@@ -41,7 +41,7 @@ export async function POST(
       courseId: courseId,
       title: body.title,
       totalMarks: body.totalMarks,
-      dueDate: body.dueDate ? new Date(body.dueDate) : null,
+      dueDate: body.dueDate ? new Date(body.dueDate).getTime() : null,
     }).returning();
 
     return NextResponse.json(newAssignment);

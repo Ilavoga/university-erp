@@ -153,15 +153,17 @@ export async function logAttendanceMarked(
   studentId: string,
   courseId: string,
   courseName: string,
-  date: Date,
+  date: Date | number,
   status: 'PRESENT' | 'ABSENT' | 'EXCUSED'
 ) {
+  const dateObj = typeof date === 'number' ? new Date(date) : date;
+  
   await logActivity({
     userId: studentId,
     actionType: 'ATTENDANCE_MARKED',
     referenceId: courseId,
     referenceType: 'course',
-    metadata: { courseName, date: date.toISOString(), status },
+    metadata: { courseName, date: dateObj.toISOString(), status },
   });
 
   // Only notify if absent or excused
@@ -169,7 +171,7 @@ export async function logAttendanceMarked(
     await createNotification({
       userId: studentId,
       title: 'Attendance Recorded',
-      message: `You were marked as ${status.toLowerCase()} for ${courseName} on ${date.toLocaleDateString()}.`,
+      message: `You were marked as ${status.toLowerCase()} for ${courseName} on ${dateObj.toLocaleDateString()}.`,
       type: status === 'ABSENT' ? 'WARNING' : 'INFO',
       link: `/academics/progress/${courseId}`,
     });
