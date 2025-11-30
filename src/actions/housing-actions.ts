@@ -256,9 +256,7 @@ export async function createHostelBlockAction(formData: FormData) {
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
       const path = `hostels/${timestamp}-${safeName}`;
-      // @ts-expect-error dynamic import optional
       const { uploadImage } = await import("@/lib/storage");
-      // @ts-expect-error dynamic import optional
       const { supabaseAdmin } = await import("@/lib/supabase");
       const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
       if (url) imageUrls.push(url);
@@ -268,7 +266,7 @@ export async function createHostelBlockAction(formData: FormData) {
   await db.insert(hostelBlocks).values({
     name,
     location,
-    genderRestriction,
+    genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
     images: imageUrls,
   });
 
@@ -285,40 +283,47 @@ export async function updateHostelBlockAction(formData: FormData) {
   const name = formData.get("name") as string;
   const location = formData.get("location") as string;
   const genderRestriction = formData.get("genderRestriction") as string;
-  const existingImagesJson = formData.get("existingImages") as string;
-  const removeImages = formData.getAll("removeImages[]") as string[]; // URLs marked for removal
-  const newFiles = formData.getAll("images") as File[];
+  const imageFiles = formData.getAll("images") as File[];
 
   if (!blockId || !name || !location) {
     throw new Error("Missing required fields");
   }
 
-  const allExisting: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
-  const keptImages = allExisting.filter((url) => !removeImages.includes(url));
+  // Prepare update data
+  const updateData: {
+    name: string;
+    location: string;
+    genderRestriction: "MALE" | "FEMALE" | "MIXED";
+    images?: string[];
+  } = {
+    name,
+    location,
+    genderRestriction: genderRestriction as "MALE" | "FEMALE" | "MIXED",
+  };
 
-  const MAX_IMAGES = 6;
-  const remainingSlots = Math.max(0, MAX_IMAGES - keptImages.length);
-
-  const uploadedUrls: string[] = [];
-  for (const file of newFiles.slice(0, remainingSlots)) {
-    if (file && file.size > 0 && file.type.startsWith("image/")) {
-      const timestamp = Date.now();
-      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
-      const path = `hostels/${blockId}/${timestamp}-${safeName}`;
-      // @ts-expect-error dynamic import
-      const { uploadImage } = await import("@/lib/storage");
-      // @ts-expect-error dynamic import
-      const { supabaseAdmin } = await import("@/lib/supabase");
-      const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
-      if (url) uploadedUrls.push(url);
+  // Only update images if new ones are provided
+  if (imageFiles.length > 0 && imageFiles[0].size > 0) {
+    const MAX_IMAGES = 6;
+    const imageUrls: string[] = [];
+    
+    for (const file of imageFiles.slice(0, MAX_IMAGES)) {
+      if (file && file.size > 0 && file.type.startsWith("image/")) {
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+        const path = `hostels/${blockId}/${timestamp}-${safeName}`;
+        const { uploadImage } = await import("@/lib/storage");
+        const { supabaseAdmin } = await import("@/lib/supabase");
+        const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+        if (url) imageUrls.push(url);
+      }
     }
+    
+    updateData.images = imageUrls;
   }
-
-  const images = [...keptImages, ...uploadedUrls];
 
   await db
     .update(hostelBlocks)
-    .set({ name, location, genderRestriction, images })
+    .set(updateData)
     .where(eq(hostelBlocks.id, blockId));
 
   revalidatePath("/housing/admin");

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { HostelImageManager } from "./hostel-image-manager";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { createHostelBlockAction, updateHostelBlockAction } from "@/actions/housing-actions";
 import { Loader2 } from "lucide-react";
 
@@ -53,7 +53,10 @@ export function CreateHostelForm({ onSuccess }: CreateHostelFormProps) {
           <option value="FEMALE">Female</option>
         </select>
       </div>
-      <HostelImageManager blockName="new hostel" existingImages={[]} maxImages={6} />
+      <div className="space-y-2">
+        <Label>Images</Label>
+        <ImageUpload name="images" maxImages={6} />
+      </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting}>
@@ -141,12 +144,13 @@ export function EditHostelForm({
           <option value="FEMALE">Female</option>
         </select>
       </div>
-      <HostelImageManager
-        blockId={blockId}
-        blockName={blockName}
-        existingImages={images ?? []}
-        maxImages={6}
-      />
+      <div className="space-y-2">
+        <Label>Images</Label>
+        <ImageUpload name="images" maxImages={6} />
+        <p className="text-xs text-muted-foreground">
+          Note: Uploading new images will replace existing ones
+        </p>
+      </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={isSubmitting}>
