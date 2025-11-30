@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { roomBookings, hostelRooms, listingInquiries, externalListings } from "@/db/schema";
+import { roomBookings, hostelRooms, listingInquiries, externalListings, hostelBlocks } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -230,6 +230,96 @@ export async function updateBookingStatusAction(formData: FormData) {
     .update(roomBookings)
     .set({ status })
     .where(eq(roomBookings.id, bookingId));
+
+  revalidatePath("/housing/admin");
+}
+
+export async function createHostelBlockAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+
+  const name = formData.get("name") as string;
+  const location = formData.get("location") as string;
+  const genderRestriction = (formData.get("genderRestriction") as string) ?? "MIXED";
+  const imageFiles = formData.getAll("images") as File[];
+
+  if (!name || !location) {
+    throw new Error("Missing required fields");
+  }
+
+  const MAX_IMAGES = 6;
+  const imageUrls: string[] = [];
+  for (const file of imageFiles.slice(0, MAX_IMAGES)) {
+    if (file && file.size > 0 && file.type.startsWith("image/")) {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+      const path = `hostels/${timestamp}-${safeName}`;
+      // @ts-expect-error dynamic import optional
+      const { uploadImage } = await import("@/lib/storage");
+      // @ts-expect-error dynamic import optional
+      const { supabaseAdmin } = await import("@/lib/supabase");
+      const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+      if (url) imageUrls.push(url);
+    }
+  }
+
+  await db.insert(hostelBlocks).values({
+    name,
+    location,
+    genderRestriction,
+    images: imageUrls,
+  });
+
+  revalidatePath("/housing/admin");
+}
+
+export async function updateHostelBlockAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+
+  const blockId = formData.get("blockId") as string;
+  const name = formData.get("name") as string;
+  const location = formData.get("location") as string;
+  const genderRestriction = formData.get("genderRestriction") as string;
+  const existingImagesJson = formData.get("existingImages") as string;
+  const removeImages = formData.getAll("removeImages[]") as string[]; // URLs marked for removal
+  const newFiles = formData.getAll("images") as File[];
+
+  if (!blockId || !name || !location) {
+    throw new Error("Missing required fields");
+  }
+
+  const allExisting: string[] = existingImagesJson ? JSON.parse(existingImagesJson) : [];
+  const keptImages = allExisting.filter((url) => !removeImages.includes(url));
+
+  const MAX_IMAGES = 6;
+  const remainingSlots = Math.max(0, MAX_IMAGES - keptImages.length);
+
+  const uploadedUrls: string[] = [];
+  for (const file of newFiles.slice(0, remainingSlots)) {
+    if (file && file.size > 0 && file.type.startsWith("image/")) {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "");
+      const path = `hostels/${blockId}/${timestamp}-${safeName}`;
+      // @ts-expect-error dynamic import
+      const { uploadImage } = await import("@/lib/storage");
+      // @ts-expect-error dynamic import
+      const { supabaseAdmin } = await import("@/lib/supabase");
+      const url = await uploadImage(file, path, undefined, supabaseAdmin || undefined);
+      if (url) uploadedUrls.push(url);
+    }
+  }
+
+  const images = [...keptImages, ...uploadedUrls];
+
+  await db
+    .update(hostelBlocks)
+    .set({ name, location, genderRestriction, images })
+    .where(eq(hostelBlocks.id, blockId));
 
   revalidatePath("/housing/admin");
 }
