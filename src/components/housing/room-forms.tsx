@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { createHostelBlockAction, updateHostelBlockAction } from "@/actions/housing-actions";
+import { createHostelRoomAction, updateHostelRoomAction } from "@/actions/housing-actions";
 import { Loader2, X } from "lucide-react";
 import Image from "next/image";
 
-interface CreateHostelFormProps {
+interface CreateRoomFormProps {
+  blockId: string;
   onSuccess?: () => void;
 }
 
-export function CreateHostelForm({ onSuccess }: CreateHostelFormProps) {
+export function CreateRoomForm({ blockId, onSuccess }: CreateRoomFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,43 +23,65 @@ export function CreateHostelForm({ onSuccess }: CreateHostelFormProps) {
     setError(null);
 
     try {
-      await createHostelBlockAction(formData);
+      await createHostelRoomAction(formData);
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create hostel block");
+      setError(err instanceof Error ? err.message : "Failed to create room");
       setIsSubmitting(false);
     }
   }
 
   return (
     <form action={handleSubmit} className="space-y-4">
+      <input type="hidden" name="blockId" value={blockId} />
+      
       <div className="space-y-2">
-        <Label htmlFor="hostel-name">Name</Label>
-        <Input id="hostel-name" name="name" required disabled={isSubmitting} />
+        <Label htmlFor="room-number">Room Number</Label>
+        <Input 
+          id="room-number" 
+          name="roomNumber" 
+          placeholder="e.g. A101" 
+          required 
+          disabled={isSubmitting} 
+        />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="hostel-location">Location</Label>
-        <Input id="hostel-location" name="location" required disabled={isSubmitting} />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="capacity">Capacity</Label>
+          <Input
+            id="capacity"
+            name="capacity"
+            type="number"
+            min="1"
+            max="10"
+            placeholder="e.g. 2"
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="price">Price/Semester (KES)</Label>
+          <Input
+            id="price"
+            name="pricePerSemester"
+            type="number"
+            min="0"
+            placeholder="e.g. 5000"
+            required
+            disabled={isSubmitting}
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="hostel-gender">Gender Restriction</Label>
-        <select
-          id="hostel-gender"
-          name="genderRestriction"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          defaultValue="MIXED"
-          disabled={isSubmitting}
-        >
-          <option value="MIXED">Mixed</option>
-          <option value="MALE">Male</option>
-          <option value="FEMALE">Female</option>
-        </select>
-      </div>
+
       <div className="space-y-2">
         <Label>Images</Label>
         <ImageUpload name="images" maxImages={6} />
       </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
+
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
@@ -67,7 +90,7 @@ export function CreateHostelForm({ onSuccess }: CreateHostelFormProps) {
               Creating...
             </>
           ) : (
-            "Create Block"
+            "Create Room"
           )}
         </Button>
       </div>
@@ -75,23 +98,25 @@ export function CreateHostelForm({ onSuccess }: CreateHostelFormProps) {
   );
 }
 
-interface EditHostelFormProps {
+interface EditRoomFormProps {
+  roomId: string;
   blockId: string;
-  blockName: string;
-  location: string;
-  genderRestriction: string | null;
+  roomNumber: string;
+  capacity: number;
+  pricePerSemester: number;
   images: string[] | null;
   onSuccess?: () => void;
 }
 
-export function EditHostelForm({
+export function EditRoomForm({
+  roomId,
   blockId,
-  blockName,
-  location,
-  genderRestriction,
+  roomNumber,
+  capacity,
+  pricePerSemester,
   images,
   onSuccess,
-}: EditHostelFormProps) {
+}: EditRoomFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [existingImages, setExistingImages] = useState<string[]>(images ?? []);
@@ -106,56 +131,64 @@ export function EditHostelForm({
     setIsSubmitting(true);
     setError(null);
 
-    // Add existing images data
     formData.set("existingImages", JSON.stringify(existingImages));
     formData.set("imagesToRemove", JSON.stringify(imagesToRemove));
 
     try {
-      await updateHostelBlockAction(formData);
+      await updateHostelRoomAction(formData);
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update hostel block");
+      setError(err instanceof Error ? err.message : "Failed to update room");
       setIsSubmitting(false);
     }
   }
 
   return (
     <form action={handleSubmit} className="space-y-4">
+      <input type="hidden" name="roomId" value={roomId} />
       <input type="hidden" name="blockId" value={blockId} />
+
       <div className="space-y-2">
-        <Label htmlFor={`hostel-name-${blockId}`}>Name</Label>
+        <Label htmlFor={`room-number-${roomId}`}>Room Number</Label>
         <Input
-          id={`hostel-name-${blockId}`}
-          name="name"
-          defaultValue={blockName}
+          id={`room-number-${roomId}`}
+          name="roomNumber"
+          defaultValue={roomNumber}
+          placeholder="e.g. A101"
           required
           disabled={isSubmitting}
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor={`hostel-location-${blockId}`}>Location</Label>
-        <Input
-          id={`hostel-location-${blockId}`}
-          name="location"
-          defaultValue={location ?? ""}
-          required
-          disabled={isSubmitting}
-        />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor={`capacity-${roomId}`}>Capacity</Label>
+          <Input
+            id={`capacity-${roomId}`}
+            name="capacity"
+            type="number"
+            min="1"
+            max="10"
+            defaultValue={capacity}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor={`price-${roomId}`}>Price/Semester (KES)</Label>
+          <Input
+            id={`price-${roomId}`}
+            name="pricePerSemester"
+            type="number"
+            min="0"
+            defaultValue={pricePerSemester}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor={`hostel-gender-${blockId}`}>Gender Restriction</Label>
-        <select
-          id={`hostel-gender-${blockId}`}
-          name="genderRestriction"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          defaultValue={genderRestriction ?? "MIXED"}
-          disabled={isSubmitting}
-        >
-          <option value="MIXED">Mixed</option>
-          <option value="MALE">Male</option>
-          <option value="FEMALE">Female</option>
-        </select>
-      </div>
+
       {/* Existing Images */}
       {existingImages.length > 0 && (
         <div className="space-y-2">
@@ -165,7 +198,7 @@ export function EditHostelForm({
               <div key={url} className="relative group aspect-video rounded-lg overflow-hidden border bg-muted">
                 <Image
                   src={url}
-                  alt={`${blockName} image ${index + 1}`}
+                  alt={`Room ${roomNumber} image ${index + 1}`}
                   fill
                   className="object-cover"
                   unoptimized
@@ -189,7 +222,9 @@ export function EditHostelForm({
         <Label>Add New Images</Label>
         <ImageUpload name="images" maxImages={6 - existingImages.length} />
       </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
+
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
