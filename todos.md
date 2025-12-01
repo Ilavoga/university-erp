@@ -4,17 +4,17 @@
 *Objective: Set up the base environment, database connection, and role-based authentication.*
 
 ### Database & Schema
-- [ ] **Initialize Project:** Setup Next.js 14+ (App Router), install SQLite driver (better-sqlite3) and ORM (Prisma/Drizzle).
-- [ ] **Schema - Users:** Define `User` table with fields: `id`, `email`, `password_hash`, `role` (ENUM: 'STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'), `profile_data` (JSON).
-- [ ] **Schema - Sessions:** Define session management tables (if using NextAuth database adapter).
+- [x] **Initialize Project:** Setup Next.js 14+ (App Router), install SQLite driver (better-sqlite3) and ORM (Prisma/Drizzle).
+- [x] **Schema - Users:** Define `User` table with fields: `id`, `email`, `password_hash`, `role` (ENUM: 'STUDENT', 'ADMIN', 'FACULTY', 'LANDLORD'), `profile_data` (JSON).
+- [x] **Schema - Sessions:** Define session management tables (if using NextAuth database adapter).
 
 ### API & Logic
-- [ ] **Auth Configuration:** Implement NextAuth.js/Auth.js with role-based middleware protection.
-- [ ] **User Endpoints:** Create `GET /api/user/me` to fetch current user context.
+- [x] **Auth Configuration:** Implement NextAuth.js/Auth.js with role-based middleware protection.
+- [x] **User Endpoints:** Create `GET /api/user/me` to fetch current user context.
 
 ### UI / Client
-- [ ] **Layout:** Create root layout with conditional navigation bars based on User Role.
-- [ ] **Login/Register:** Create responsive authentication forms.
+- [x] **Layout:** Create root layout with conditional navigation bars based on User Role.
+- [x] **Login/Register:** Create responsive authentication forms.
 
 ---
 
@@ -22,23 +22,23 @@
 *Objective: Track student performance and suggest resources.*
 
 ### Database & Schema
-- [ ] **Schema - Academics:** Create tables:
+- [x] **Schema - Academics:** Create tables:
     - `Course` (id, code, title, lecturer_id).
     - `Enrollment` (student_id, course_id, status).
     - `Assignment` (course_id, total_marks).
     - `Grade` (enrollment_id, assignment_id, score_obtained).
     - `Attendance` (enrollment_id, date, status).
-- [ ] **Schema - Recommendations:** Create `Recommendation` table (user_id, type, resource_link, reason, relevance_score).
+- [x] **Schema - Recommendations:** Create `Recommendation` table (user_id, type, resource_link, reason, relevance_score).
 
 ### API & Logic
-- [ ] **Faculty Logic:** Create endpoints for Faculty to input grades and attendance (`POST /api/faculty/grades`).
-- [ ] **Progress Logic:** Create `GET /api/student/progress` to aggregate grades and calculate GPA/Completion % in real-time.
-- [ ] **Recommendation Engine:** Implement a utility function that analyzes `Enrollment` history to seed the `Recommendation` table (Mock AI or OpenAI API integration).
+- [x] **Faculty Logic:** Create endpoints for Faculty to input grades and attendance (`POST /api/faculty/grades`).
+- [x] **Progress Logic:** Create `GET /api/student/progress` to aggregate grades and calculate GPA/Completion % in real-time.
+- [x] **Recommendation Engine:** Implement a utility function that analyzes `Enrollment` history to seed the `Recommendation` table (Mock AI or OpenAI API integration).
 
 ### UI / Client
-- [ ] **Course List:** Create component to list active courses.
-- [ ] **Progress Details Page:** Create `/academics/progress/[courseId]` displaying charts (recharts/chart.js) of grades and attendance.
-- [ ] **Explore Page:** Create `/academics/explore` rendering the recommendation feed.
+- [x] **Course List:** Create component to list active courses.
+- [x] **Progress Details Page:** Create `/academics/progress/[courseId]` displaying charts (recharts/chart.js) of grades and attendance.
+- [x] **Explore Page:** Create `/academics/explore` rendering the recommendation feed.
 
 ---
 
@@ -46,17 +46,27 @@
 *Objective: Centralized activity feed and settings.*
 
 ### Database & Schema
-- [ ] **Schema - Activity:** Create `ActivityLog` table (user_id, action_type, reference_id, timestamp).
-- [ ] **Schema - Notifications:** Create `Notification` table (user_id, message, is_read, type, link).
+- [X] **Schema - Activity:** Create `ActivityLog` table (user_id, action_type, reference_id, timestamp).
+- [X] **Schema - Notifications:** Create `Notification` table (user_id, message, is_read, type, link).
 
 ### API & Logic
-- [ ] **Event Triggers:** Implement database hooks/middleware to insert into `ActivityLog` whenever a User creates a booking, submits an assignment, or posts a listing.
-- [ ] **Notification Endpoint:** `GET /api/notifications` (polled every 30s) and `PATCH /api/notifications/[id]` (mark read).
+- [X] **Activity Logger:** Utility to log key actions (e.g., "Submitted Assignment", "Viewed Grade").
+- [X] **Notification System:** Logic to create notifications on triggers (e.g., Grade posted -> Notify Student).
 
 ### UI / Client
-- [ ] **Recent Activity Tab:** Create a widget showing a chronological list of `ActivityLog` entries.
-- [ ] **Account Settings:** Create dynamic forms to update `User.profile_data`.
-- [ ] **Notification Center:** Create a dropdown/page for notifications with "Mark all read" functionality.
+- [x] **Sidebar:** Implement sidebar navigation for services (Dashboard, Academics, Housing).
+- [X] **Activity Feed:** Component on Dashboard showing recent user activity.
+- [X] **Notification Center:** Dropdown/Page for notifications.
+
+
+### API & Logic
+- [X] **Event Triggers:** Implement database hooks/middleware to insert into `ActivityLog` whenever a User creates a booking, submits an assignment, or posts a listing.
+- [X] **Notification Endpoint:** `GET /api/notifications` (polled every 30s) and `PATCH /api/notifications/[id]` (mark read).
+
+### UI / Client
+- [X] **Recent Activity Tab:** Create a widget showing a chronological list of `ActivityLog` entries.
+- [X] **Account Settings:** Create dynamic forms to update `User.profile_data`.
+- [X] **Notification Center:** Create a dropdown/page for notifications with "Mark all read" functionality.
 
 ---
 
@@ -64,8 +74,8 @@
 *Objective: Dual-system for on-campus booking and off-campus listings.*
 
 ### Database & Schema
-- [ ] **Schema - Internal:** Create `HostelBlock`, `HostelRoom` (capacity, current_occupancy), `RoomBooking` (student_id, room_id, semester).
-- [ ] **Schema - External:** Create `ExternalListing` (landlord_id, location, price, images, is_available), `ListingInquiry` (student_id, listing_id, message).
+- [X] **Schema - Internal:** Create `HostelBlock`, `HostelRoom` (capacity, current_occupancy), `RoomBooking` (student_id, room_id, semester).
+- [X] **Schema - External:** Create `ExternalListing` (landlord_id, location, price, images, is_available), `ListingInquiry` (student_id, listing_id, message).
 
 ### API & Logic
 - [ ] **Availability Logic (Internal):** API to check `HostelRoom` capacity before allowing a `POST` to `RoomBooking`.
@@ -83,10 +93,11 @@
 *Objective: Route-based flexible transport tracking.*
 
 ### Database & Schema
-- [ ] **Schema - Infrastructure:** Create `Route` (name, start_point, end_point) and `RouteStop` (route_id, stop_name, sequence_order).
-- [ ] **Schema - Fleet:** Create `Vehicle` (plate_number, capacity, current_route_id) and `VehicleStatus` (vehicle_id, current_stop_id, status: 'LOADING', 'DEPARTED', 'EN_ROUTE').
+- [x] **Schema - Infrastructure:** Create `Route` (name, start_point, end_point) and `RouteStop` (route_id, stop_name, sequence_order).
+- [x] **Schema - Fleet:** Create `Vehicle` (plate_number, capacity, current_route_id) and `VehicleStatus` (vehicle_id, current_stop_id, status: 'LOADING', 'DEPARTED', 'EN_ROUTE').
 
 ### API & Logic
+- [ ] **Branch Setup (Planned):** Create `feature/phase-4-api` from `develop`.
 - [ ] **Status Updates (Admin/Driver):** Endpoint `PATCH /api/transport/vehicle/[id]` to update location/status.
 - [ ] **Student Query:** `GET /api/transport/routes` returning routes with nested active vehicles.
 

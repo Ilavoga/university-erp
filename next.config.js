@@ -1,14 +1,28 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    // Fix for better-sqlite3
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push({
-        'better-sqlite3': 'commonjs better-sqlite3',
-      });
-    }
-    return config;
+  serverExternalPackages: ["better-sqlite3"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
+  // Increase middleware client body size for large file uploads
+  middlewareClientMaxBodySize: "50mb",
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "bwnjplrvmxmdixjwnvgd.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatar.vercel.sh",
+      },
+    ],
   },
 };
 
