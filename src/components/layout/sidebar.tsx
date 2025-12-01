@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Home, LayoutDashboard, Compass } from "lucide-react";
+import { GraduationCap, Home, LayoutDashboard, Compass, Bus } from "lucide-react";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -30,6 +30,11 @@ const sidebarItems = [
     title: "Housing",
     href: "/housing",
     icon: Home,
+  },
+  {
+    title: "Transport",
+    href: "/transport",
+    icon: Bus,
   },
 ];
 
@@ -70,6 +75,9 @@ const getSidebarItemsForRole = (role?: string) => sidebarItems
     if (role === "ADMIN" && item.title === "Housing") {
       return { ...item, href: "/housing/admin" };
     }
+    if (role === "ADMIN" && item.title === "Transport") {
+      return { ...item, href: "/transport/admin" };
+    }
     return item;
   })
   .filter((item) => {
@@ -80,6 +88,9 @@ const getSidebarItemsForRole = (role?: string) => sidebarItems
       return false;
     }
     if ((item.title === "Academics" || item.title === "Explore") && role === "LANDLORD") {
+      return false;
+    }
+    if (item.title === "Transport" && role === "LANDLORD") {
       return false;
     }
     return true;
