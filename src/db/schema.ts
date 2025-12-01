@@ -333,9 +333,23 @@ export const vehicleStatuses = sqliteTable('vehicle_status', {
     .default(sql`(unixepoch() * 1000)`),
 });
 
+export const vehicleBookings = sqliteTable('vehicle_booking', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  vehicleId: text('vehicle_id').notNull().references(() => vehicles.id, { onDelete: 'cascade' }),
+  routeId: text('route_id').notNull().references(() => routes.id),
+  pickupStopId: text('pickup_stop_id').references(() => routeStops.id),
+  dropoffStopId: text('dropoff_stop_id').references(() => routeStops.id),
+  status: text('status', { enum: ['CONFIRMED', 'CANCELLED', 'COMPLETED'] }).notNull().default('CONFIRMED'),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
 export const routesRelations = relations(routes, ({ many }) => ({
   stops: many(routeStops),
   vehicles: many(vehicles),
+  bookings: many(vehicleBookings),
 }));
 
 export const routeStopsRelations = relations(routeStops, ({ one }) => ({
@@ -351,6 +365,7 @@ export const vehiclesRelations = relations(vehicles, ({ one, many }) => ({
     references: [routes.id],
   }),
   statuses: many(vehicleStatuses),
+  bookings: many(vehicleBookings),
 }));
 
 export const vehicleStatusesRelations = relations(vehicleStatuses, ({ one }) => ({
@@ -364,6 +379,29 @@ export const vehicleStatusesRelations = relations(vehicleStatuses, ({ one }) => 
   }),
 }));
 
+export const vehicleBookingsRelations = relations(vehicleBookings, ({ one }) => ({
+  student: one(users, {
+    fields: [vehicleBookings.studentId],
+    references: [users.id],
+  }),
+  vehicle: one(vehicles, {
+    fields: [vehicleBookings.vehicleId],
+    references: [vehicles.id],
+  }),
+  route: one(routes, {
+    fields: [vehicleBookings.routeId],
+    references: [routes.id],
+  }),
+  pickupStop: one(routeStops, {
+    fields: [vehicleBookings.pickupStopId],
+    references: [routeStops.id],
+  }),
+  dropoffStop: one(routeStops, {
+    fields: [vehicleBookings.dropoffStopId],
+    references: [routeStops.id],
+  }),
+}));
+
 // Type exports for Phase 4
 export type Route = typeof routes.$inferSelect;
 export type NewRoute = typeof routes.$inferInsert;
@@ -373,5 +411,7 @@ export type Vehicle = typeof vehicles.$inferSelect;
 export type NewVehicle = typeof vehicles.$inferInsert;
 export type VehicleStatus = typeof vehicleStatuses.$inferSelect;
 export type NewVehicleStatus = typeof vehicleStatuses.$inferInsert;
+export type VehicleBooking = typeof vehicleBookings.$inferSelect;
+export type NewVehicleBooking = typeof vehicleBookings.$inferInsert;
 
 
